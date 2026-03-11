@@ -1,0 +1,15 @@
+{
+  "source_url": "https://www.spdrgoldshares.com/assets/dynamic/GLD/GLD_US_archive_EN.csv",
+  "fetched_at_utc": "2026-02-27T08:37:43Z",
+  "date_from": "2004-11-18",
+  "date_to": "2026-02-26",
+  "records": 5350,
+  "changes": 5349,
+  "mean_change_ton": 0.20374088614694338,
+  "std_change_ton": 4.220267854936287,
+  "abs_q25_ton": 0.0,
+  "abs_q90_ton": 5.850000000000046,
+  "abs_q95_ton": 8.953999999999953,
+  "abs_q99_ton": 16.855200000000014,
+  "holiday_gap_count": 147
+}

@@ -1,0 +1,1516 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>黄金ETF持仓报告 - 模拟小程序</title>
+  <style>
+    :root {
+      --bg: #f5f6f8;
+      --card: #ffffff;
+      --text: #222;
+      --subtext: #6c7380;
+      --line: #e9edf3;
+      --up: #e8483f;
+      --down: #218739;
+      --accent: #d08b3e;
+      --chip: #f0f3f7;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 10% -20%, #fff7e8 0%, transparent 35%),
+        radial-gradient(circle at 90% 0%, #eef5ff 0%, transparent 30%),
+        var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      display: flex;
+      justify-content: center;
+      padding: 18px 10px 30px;
+    }
+
+    .phone {
+      width: 100%;
+      max-width: 460px;
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 14px;
+      box-shadow: 0 6px 20px rgba(19, 31, 61, 0.06);
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    .hero {
+      background: linear-gradient(138deg, #fffdf8 0%, #ffffff 45%, #fff6e8 100%);
+      border: 1px solid #f6e7cf;
+    }
+
+    .title {
+      font-size: 34px;
+      margin: 0;
+      letter-spacing: 0.6px;
+      font-weight: 800;
+    }
+
+    .source {
+      margin-top: 6px;
+      color: var(--subtext);
+      font-size: 14px;
+    }
+
+    .main-value {
+      margin-top: 14px;
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .main-value .num {
+      color: #ca6a52;
+      font-size: 52px;
+      line-height: 1;
+      font-weight: 700;
+    }
+
+    .main-value .unit {
+      font-size: 30px;
+      color: #5f4d35;
+      font-weight: 600;
+    }
+
+    .meta {
+      margin-top: 8px;
+      color: var(--subtext);
+      font-size: 13px;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .meta-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .seg-wrap {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .segment {
+      background: var(--chip);
+      border-radius: 11px;
+      padding: 4px;
+      display: inline-flex;
+      gap: 4px;
+    }
+
+    .segment button {
+      border: 0;
+      background: transparent;
+      color: #4d5563;
+      border-radius: 8px;
+      padding: 8px 13px;
+      font-size: 14px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .segment button.active {
+      background: #fff;
+      color: #1a2433;
+      box-shadow: 0 2px 8px rgba(12, 28, 66, 0.12);
+    }
+
+    .summary-grid {
+      margin-top: 12px;
+      display: grid;
+      gap: 8px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .summary-item {
+      background: #fafbfd;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px;
+    }
+
+    .summary-item .label {
+      color: var(--subtext);
+      font-size: 12px;
+    }
+
+    .summary-item .value {
+      margin-top: 5px;
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+
+    .up { color: var(--up); }
+    .down { color: var(--down); }
+
+    .trend-wrap {
+      margin-top: 12px;
+      border-top: 1px dashed var(--line);
+      padding-top: 12px;
+    }
+
+    .chart-toolbar {
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .chart-toolbar .label {
+      color: #6b7280;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    canvas {
+      width: 100%;
+      height: auto;
+      border-radius: 10px;
+      background: linear-gradient(180deg, #fff 0%, #fcfdff 100%);
+      border: 1px solid var(--line);
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .range-tag {
+      color: #566074;
+      font-size: 12px;
+      background: #f3f6fb;
+      border: 1px solid #e6ecf4;
+      border-radius: 999px;
+      padding: 5px 10px;
+    }
+
+    .daily-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .daily-item {
+      display: grid;
+      grid-template-columns: 146px 1fr 94px;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: #354155;
+      padding: 2px 0;
+    }
+
+    .bar-track {
+      background: #f1f4f8;
+      border-radius: 999px;
+      height: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .bar {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      border-radius: 999px;
+      min-width: 2px;
+    }
+
+    .footer-note {
+      margin-top: 10px;
+      color: #7a8391;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .monitor-grid {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .monitor-item {
+      background: #fafbfd;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px;
+      min-height: 80px;
+    }
+
+    .monitor-item .label {
+      color: var(--subtext);
+      font-size: 12px;
+    }
+
+    .monitor-item .value {
+      margin-top: 6px;
+      font-size: 16px;
+      line-height: 1.3;
+      font-weight: 700;
+      color: #1f2a3d;
+    }
+
+    .monitor-item .sub {
+      margin-top: 4px;
+      color: #6a7383;
+      font-size: 12px;
+    }
+
+    .signal-a { color: #b04b2a; }
+    .signal-b { color: #1e7d4f; }
+    .signal-none { color: #5f697a; }
+
+    .date-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 5px;
+      min-width: 0;
+    }
+
+    .date-text {
+      white-space: nowrap;
+      line-height: 1.15;
+      font-weight: 600;
+      color: #374151;
+    }
+
+    .tag-row {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-wrap: wrap;
+      max-width: 100%;
+    }
+
+    .signal-tag {
+      font-size: 10px;
+      line-height: 1.2;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      white-space: nowrap;
+      flex-shrink: 0;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .tag-a {
+      color: #9a3412;
+      background: #fff7f2;
+      border-color: #ffd8c2;
+    }
+
+    .tag-b {
+      color: #166534;
+      background: #effaf4;
+      border-color: #ccebd9;
+    }
+
+    .ext-in-tag {
+      color: #b45309;
+      background: #fffaf2;
+      border-color: #f2d8b1;
+    }
+
+    .ext-out-tag {
+      color: #0f766e;
+      background: #f0fbfa;
+      border-color: #bfe7e3;
+    }
+
+    .tag-confirmed {
+      box-shadow: inset 0 0 0 1px rgba(24, 31, 46, 0.08);
+      font-weight: 700;
+    }
+
+    .value-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .filter-controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: nowrap;
+      margin-top: 10px;
+      font-size: clamp(11px, 2.6vw, 13px);
+      background: #f7f9fc;
+      border: 1px solid #e5ecf7;
+      border-radius: 12px;
+      padding: 8px 10px;
+    }
+
+    .filter-controls label {
+      font-size: inherit;
+      color: #5f6879;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .date-input {
+      border: 1px solid #d7deea;
+      border-radius: 8px;
+      padding: 6px 8px;
+      font-size: inherit;
+      color: #2a3448;
+      background: #fff;
+      width: clamp(92px, 21vw, 118px);
+      flex: 0 0 clamp(92px, 21vw, 118px);
+    }
+
+    .ghost-btn {
+      border: 1px solid #d7deea;
+      background: #fff;
+      border-radius: 8px;
+      padding: 6px 8px;
+      font-size: inherit;
+      color: #3b4760;
+      cursor: pointer;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    #filterApplyBtn {
+      background: #2563eb;
+      border-color: #2563eb;
+      color: #fff;
+    }
+
+    .filter-sep {
+      color: #8a93a3;
+      font-size: 12px;
+    }
+
+    .filter-state {
+      margin-top: 8px;
+      color: #6f7888;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .filter-actions {
+      display: inline-flex;
+      gap: 6px;
+      flex-wrap: nowrap;
+      flex-shrink: 0;
+    }
+
+    .matrix-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+
+    .matrix-head h2 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .matrix-tools {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .matrix-year-select {
+      border: 1px solid #d7deea;
+      background: #fff;
+      color: #3b4760;
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      min-width: 84px;
+    }
+
+    .matrix-year-select:disabled {
+      color: #8b95a6;
+      background: #f5f7fb;
+    }
+
+    .matrix-year-select.is-hidden {
+      display: none;
+    }
+
+    .matrix-grid {
+      display: grid;
+      gap: 8px;
+    }
+
+    .matrix-grid.month {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .matrix-grid.week {
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+    }
+
+    .matrix-cell {
+      border: 1px solid #dde4ef;
+      border-radius: 12px;
+      padding: 8px 6px;
+      min-height: 56px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      font-size: 12px;
+      color: #334155;
+      line-height: 1.2;
+    }
+
+    .matrix-cell .k {
+      font-weight: 700;
+      color: #4b5563;
+    }
+
+    .matrix-cell .v {
+      margin-top: 3px;
+      font-weight: 700;
+    }
+
+    .matrix-grid.week .matrix-cell {
+      min-height: 58px;
+      padding: 6px 4px;
+    }
+
+    .matrix-cell.no-data {
+      background: #f8fafc !important;
+      border-color: #dfe6f2 !important;
+      color: #94a3b8 !important;
+    }
+
+    .matrix-cell.current-period {
+      border-color: #2563eb !important;
+      box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.35);
+      position: relative;
+      animation: current-period-pulse 1.7s ease-in-out infinite;
+    }
+
+    .matrix-cell.current-period::after {
+      content: none;
+    }
+
+    .matrix-grid.week .matrix-cell .k {
+      font-size: 11px;
+      line-height: 1.05;
+      letter-spacing: 0;
+      white-space: nowrap;
+    }
+
+    .matrix-grid.week .matrix-cell .v {
+      margin-top: 2px;
+      font-size: 10px;
+      line-height: 1.05;
+      white-space: nowrap;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: clip;
+    }
+
+    .matrix-grid.week .matrix-cell.no-data .v {
+      display: none;
+    }
+
+    @keyframes current-period-pulse {
+      0%, 100% {
+        box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.35), 0 0 0 0 rgba(37, 99, 235, 0.0);
+      }
+      50% {
+        box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.7), 0 0 0 3px rgba(37, 99, 235, 0.16);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .matrix-cell.current-period {
+        animation: none;
+      }
+    }
+
+    .matrix-legend {
+      margin-top: 8px;
+      color: #6b7280;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    @media (max-width: 360px) {
+      .main-value .num { font-size: 42px; }
+      .main-value .unit { font-size: 24px; }
+      .daily-item { grid-template-columns: 118px 1fr 86px; }
+      .filter-controls { font-size: 11px; gap: 4px; }
+      .date-input { width: 88px; flex-basis: 88px; padding: 5px 6px; }
+      .ghost-btn { padding: 5px 6px; }
+      .filter-actions { gap: 4px; }
+      .matrix-grid.week { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+      .matrix-grid.week .matrix-cell .k { font-size: 10px; }
+      .matrix-grid.week .matrix-cell .v { font-size: 9px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="phone">
+    <section class="card hero">
+      <h1 class="title">黄金ETF持仓报告</h1>
+      <div class="source">公布机构：美国 SPDR Gold Trust</div>
+      <div class="main-value">
+        <span class="num" id="currentHolding">1097.62</span>
+        <span class="unit">吨</span>
+      </div>
+      <div class="meta">
+        <span>黄金ETF总持仓变化</span>
+        <span class="meta-right">
+          <span id="updatedAt">更新：2026-02-25</span>
+        </span>
+      </div>
+      <div class="trend-wrap">
+        <div class="chart-toolbar">
+          <span class="label">折线跨度</span>
+          <div class="segment" id="chartSpanSegment">
+            <button class="active" data-chart-span="1m">月</button>
+            <button data-chart-span="1y">1年</button>
+            <button data-chart-span="3y">3年</button>
+            <button data-chart-span="5y">5年</button>
+          </div>
+        </div>
+        <canvas id="lineChart" width="900" height="300"></canvas>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="seg-wrap">
+        <div class="segment" id="periodSegment">
+          <button class="active" data-period="week">周</button>
+          <button data-period="month">月</button>
+          <button data-period="year">年</button>
+        </div>
+        <div class="segment" id="unitSegment">
+          <button class="active" data-unit="ton">按吨统计</button>
+          <button data-unit="amount">按金额统计</button>
+        </div>
+      </div>
+      <div class="filter-controls">
+        <label for="filterStartInput">日期筛选</label>
+        <input id="filterStartInput" class="date-input" type="date" />
+        <span class="filter-sep">~</span>
+        <input id="filterEndInput" class="date-input" type="date" />
+        <span class="filter-actions">
+          <button id="filterApplyBtn" class="ghost-btn" type="button">应用</button>
+          <button id="filterClearBtn" class="ghost-btn" type="button">清除</button>
+        </span>
+      </div>
+      <div class="filter-state" id="filterStateText">--</div>
+
+      <div class="summary-grid">
+        <div class="summary-item">
+          <div class="label" id="labelNet">净变化（吨）</div>
+          <div class="value" id="statNet">--</div>
+        </div>
+        <div class="summary-item">
+          <div class="label">有效交易日</div>
+          <div class="value" id="statDays">--</div>
+        </div>
+        <div class="summary-item">
+          <div class="label" id="labelUp">增加（吨）</div>
+          <div class="value up" id="statUp">--</div>
+        </div>
+        <div class="summary-item">
+          <div class="label" id="labelDown">减持（吨）</div>
+          <div class="value down" id="statDown">--</div>
+        </div>
+      </div>
+
+      <div class="matrix-head" style="margin-top:12px;">
+        <h2>净流入矩阵</h2>
+        <div class="matrix-tools">
+          <span class="range-tag" id="matrixModeTag">跟随周期 --</span>
+          <select id="matrixYearSelect" class="matrix-year-select"></select>
+        </div>
+      </div>
+      <div id="flowMatrixGrid" class="matrix-grid month"></div>
+      <div class="matrix-legend" id="flowMatrixLegend">--</div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <h2>区间日变化一览</h2>
+        <span class="range-tag" id="rangeTag">--</span>
+      </div>
+      <ul class="daily-list" id="dailyList"></ul>
+      <div class="footer-note">
+        计算口径：按交易日净变化累计。金额为估算值（由 GLD 收盘价折算黄金价格并使用离岸人民币 USDCNH 报价换算），仅用于同口径对比；信号标签只表示客观数据状态。
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <h2>背离监控</h2>
+        <span class="range-tag" id="divRuleTag">阈值 --</span>
+      </div>
+      <div class="monitor-grid">
+        <div class="monitor-item">
+          <div class="label">最新交易日信号</div>
+          <div class="value signal-none" id="divTodayType">--</div>
+          <div class="sub" id="divTodayMeta">--</div>
+        </div>
+        <div class="monitor-item">
+          <div class="label">当前区间触发次数</div>
+          <div class="value" id="divCount">--</div>
+          <div class="sub" id="divCountMeta">--</div>
+        </div>
+      </div>
+      <div class="footer-note">
+        监控规则仅基于客观数据：当日价格涨跌方向与持仓增减方向相反且超过阈值时记为“背离信号”；不构成任何投资建议。
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <h2>极值监控</h2>
+        <span class="range-tag" id="extRuleTag">按当前区间</span>
+      </div>
+      <div class="monitor-grid">
+        <div class="monitor-item">
+          <div class="label">区间最大流入</div>
+          <div class="value" id="extremeInValue">--</div>
+          <div class="sub" id="extremeInMeta">--</div>
+        </div>
+        <div class="monitor-item">
+          <div class="label">区间最大流出</div>
+          <div class="value" id="extremeOutValue">--</div>
+          <div class="sub" id="extremeOutMeta">--</div>
+        </div>
+      </div>
+      <div class="footer-note">
+        极值监控仅基于当前区间客观数据：最大流入为区间内最大正向变化，最大流出为区间内最大负向变化；不构成任何投资建议。
+      </div>
+    </section>
+  </main>
+
+  <script>
+window.__SPDR_HISTORY_DATA__ = {"sourceUrl": "https://www.spdrgoldshares.com/assets/dynamic/GLD/GLD_US_archive_EN.csv", "generatedAtUtc": "2026-02-27T08:50:32Z", "baseline": {"dateFrom": "2021-02-26", "dateTo": "2026-02-26", "records": 1256, "changes": 1255, "meanChangeTon": 0.0034820717131475044, "stdChangeTon": 3.259840570411273, "absQ25Ton": 0.0, "absQ90Ton": 4.660000000000082, "absQ95Ton": 6.299999999999988, "absQ99Ton": 12.01999999999992}, "rows": [{"date": "2021-02-26", "holdingTon": 1093.53, "changeTon": -6.71, "gldClose": 161.81}, {"date": "2021-03-01", "holdingTon": 1084.5, "changeTon": -9.03, "gldClose": 161.53}, {"date": "2021-03-02", "holdingTon": 1087.12, "changeTon": 2.62, "gldClose": 162.41}, {"date": "2021-03-03", "holdingTon": 1082.38, "changeTon": -4.74, "gldClose": 160.62}, {"date": "2021-03-04", "holdingTon": 1078.3, "changeTon": -4.08, "gldClose": 159.04}, {"date": "2021-03-05", "holdingTon": 1069.26, "changeTon": -9.04, "gldClose": 159.14}, {"date": "2021-03-08", "holdingTon": 1063.43, "changeTon": -5.83, "gldClose": 157.49}, {"date": "2021-03-09", "holdingTon": 1061.98, "changeTon": -1.45, "gldClose": 160.84}, {"date": "2021-03-10", "holdingTon": 1060.23, "changeTon": -1.75, "gldClose": 161.66}, {"date": "2021-03-11", "holdingTon": 1055.27, "changeTon": -4.96, "gldClose": 161.52}, {"date": "2021-03-12", "holdingTon": 1052.07, "changeTon": -3.2, "gldClose": 161.49}, {"date": "2021-03-15", "holdingTon": 1050.32, "changeTon": -1.75, "gldClose": 162.2}, {"date": "2021-03-16", "holdingTon": 1050.32, "changeTon": 0.0, "gldClose": 162.35}, {"date": "2021-03-17", "holdingTon": 1048.28, "changeTon": -2.04, "gldClose": 163.51}, {"date": "2021-03-18", "holdingTon": 1048.28, "changeTon": 0.0, "gldClose": 162.56}, {"date": "2021-03-19", "holdingTon": 1051.78, "changeTon": 3.5, "gldClose": 163.24}, {"date": "2021-03-22", "holdingTon": 1051.78, "changeTon": 0.0, "gldClose": 163.0}, {"date": "2021-03-23", "holdingTon": 1045.36, "changeTon": -6.42, "gldClose": 161.81}, {"date": "2021-03-24", "holdingTon": 1043.03, "changeTon": -2.33, "gldClose": 162.37}, {"date": "2021-03-25", "holdingTon": 1043.03, "changeTon": 0.0, "gldClose": 161.78}, {"date": "2021-03-26", "holdingTon": 1036.62, "changeTon": -6.41, "gldClose": 162.24}, {"date": "2021-03-29", "holdingTon": 1037.5, "changeTon": 0.88, "gldClose": 160.31}, {"date": "2021-03-30", "holdingTon": 1037.5, "changeTon": 0.0, "gldClose": 157.57}, {"date": "2021-03-31", "holdingTon": 1037.5, "changeTon": 0.0, "gldClose": 159.96}, {"date": "2021-04-01", "holdingTon": 1032.83, "changeTon": -4.67, "gldClose": 161.98}, {"date": "2021-04-05", "holdingTon": 1032.83, "changeTon": 0.0, "gldClose": 161.92}, {"date": "2021-04-06", "holdingTon": 1029.04, "changeTon": -3.79, "gldClose": 163.22}, {"date": "2021-04-07", "holdingTon": 1028.69, "changeTon": -0.35, "gldClose": 162.76}, {"date": "2021-04-08", "holdingTon": 1026.07, "changeTon": -2.62, "gldClose": 164.51}, {"date": "2021-04-09", "holdingTon": 1026.07, "changeTon": 0.0, "gldClose": 163.27}, {"date": "2021-04-12", "holdingTon": 1026.07, "changeTon": 0.0, "gldClose": 162.28}, {"date": "2021-04-13", "holdingTon": 1026.07, "changeTon": 0.0, "gldClose": 163.43}, {"date": "2021-04-14", "holdingTon": 1022.86, "changeTon": -3.21, "gldClose": 162.72}, {"date": "2021-04-15", "holdingTon": 1022.86, "changeTon": 0.0, "gldClose": 165.35}, {"date": "2021-04-16", "holdingTon": 1019.66, "changeTon": -3.2, "gldClose": 166.35}, {"date": "2021-04-19", "holdingTon": 1021.7, "changeTon": 2.04, "gldClose": 165.89}, {"date": "2021-04-20", "holdingTon": 1021.7, "changeTon": 0.0, "gldClose": 166.48}, {"date": "2021-04-21", "holdingTon": 1021.7, "changeTon": 0.0, "gldClose": 168.13}, {"date": "2021-04-22", "holdingTon": 1021.7, "changeTon": 0.0, "gldClose": 167.04}, {"date": "2021-04-23", "holdingTon": 1021.7, "changeTon": 0.0, "gldClose": 166.4}, {"date": "2021-04-26", "holdingTon": 1021.7, "changeTon": 0.0, "gldClose": 166.84}, {"date": "2021-04-27", "holdingTon": 1021.7, "changeTon": 0.0, "gldClose": 166.42}, {"date": "2021-04-28", "holdingTon": 1021.7, "changeTon": 0.0, "gldClose": 166.91}, {"date": "2021-04-29", "holdingTon": 1017.04, "changeTon": -4.66, "gldClose": 166.22}, {"date": "2021-04-30", "holdingTon": 1017.04, "changeTon": 0.0, "gldClose": 165.66}, {"date": "2021-05-03", "holdingTon": 1018.2, "changeTon": 1.16, "gldClose": 167.81}, {"date": "2021-05-04", "holdingTon": 1018.2, "changeTon": 0.0, "gldClose": 166.58}, {"date": "2021-05-05", "holdingTon": 1019.33, "changeTon": 1.13, "gldClose": 167.27}, {"date": "2021-05-06", "holdingTon": 1019.33, "changeTon": 0.0, "gldClose": 170.06}, {"date": "2021-05-07", "holdingTon": 1025.15, "changeTon": 5.82, "gldClose": 171.59}, {"date": "2021-05-10", "holdingTon": 1025.15, "changeTon": 0.0, "gldClose": 172.11}, {"date": "2021-05-11", "holdingTon": 1025.15, "changeTon": 0.0, "gldClose": 172.14}, {"date": "2021-05-12", "holdingTon": 1025.15, "changeTon": 0.0, "gldClose": 170.43}, {"date": "2021-05-13", "holdingTon": 1024.28, "changeTon": -0.87, "gldClose": 171.13}, {"date": "2021-05-14", "holdingTon": 1028.36, "changeTon": 4.08, "gldClose": 172.69}, {"date": "2021-05-17", "holdingTon": 1035.93, "changeTon": 7.57, "gldClose": 174.7}, {"date": "2021-05-18", "holdingTon": 1035.93, "changeTon": 0.0, "gldClose": 175.04}, {"date": "2021-05-19", "holdingTon": 1031.27, "changeTon": -4.66, "gldClose": 175.16}, {"date": "2021-05-20", "holdingTon": 1037.09, "changeTon": 5.82, "gldClose": 175.96}, {"date": "2021-05-21", "holdingTon": 1042.92, "changeTon": 5.83, "gldClose": 176.04}, {"date": "2021-05-24", "holdingTon": 1046.12, "changeTon": 3.2, "gldClose": 176.35}, {"date": "2021-05-25", "holdingTon": 1046.12, "changeTon": 0.0, "gldClose": 177.95}, {"date": "2021-05-26", "holdingTon": 1044.08, "changeTon": -2.04, "gldClose": 177.64}, {"date": "2021-05-27", "holdingTon": 1044.08, "changeTon": 0.0, "gldClose": 177.71}, {"date": "2021-05-28", "holdingTon": 1043.21, "changeTon": -0.87, "gldClose": 178.38}, {"date": "2021-06-01", "holdingTon": 1045.83, "changeTon": 2.62, "gldClose": 177.9}, {"date": "2021-06-02", "holdingTon": 1041.75, "changeTon": -4.08, "gldClose": 178.77}, {"date": "2021-06-03", "holdingTon": 1041.75, "changeTon": 0.0, "gldClose": 175.27}, {"date": "2021-06-04", "holdingTon": 1043.16, "changeTon": 1.41, "gldClose": 177.16}, {"date": "2021-06-07", "holdingTon": 1037.33, "changeTon": -5.83, "gldClose": 177.87}, {"date": "2021-06-08", "holdingTon": 1037.33, "changeTon": 0.0, "gldClose": 177.32}, {"date": "2021-06-09", "holdingTon": 1043.16, "changeTon": 5.83, "gldClose": 176.98}, {"date": "2021-06-10", "holdingTon": 1044.61, "changeTon": 1.45, "gldClose": 177.74}, {"date": "2021-06-11", "holdingTon": 1044.61, "changeTon": 0.0, "gldClose": 175.74}, {"date": "2021-06-14", "holdingTon": 1044.61, "changeTon": 0.0, "gldClose": 174.71}, {"date": "2021-06-15", "holdingTon": 1044.61, "changeTon": 0.0, "gldClose": 174.05}, {"date": "2021-06-16", "holdingTon": 1045.78, "changeTon": 1.17, "gldClose": 171.11}, {"date": "2021-06-17", "holdingTon": 1041.99, "changeTon": -3.79, "gldClose": 165.85}, {"date": "2021-06-18", "holdingTon": 1053.06, "changeTon": 11.07, "gldClose": 164.93}, {"date": "2021-06-21", "holdingTon": 1049.56, "changeTon": -3.5, "gldClose": 166.95}, {"date": "2021-06-22", "holdingTon": 1049.56, "changeTon": 0.0, "gldClose": 166.25}, {"date": "2021-06-23", "holdingTon": 1046.65, "changeTon": -2.91, "gldClose": 166.14}, {"date": "2021-06-24", "holdingTon": 1042.87, "changeTon": -3.78, "gldClose": 166.04}, {"date": "2021-06-25", "holdingTon": 1042.87, "changeTon": 0.0, "gldClose": 166.59}, {"date": "2021-06-28", "holdingTon": 1045.78, "changeTon": 2.91, "gldClose": 166.58}, {"date": "2021-06-29", "holdingTon": 1045.78, "changeTon": 0.0, "gldClose": 164.83}, {"date": "2021-06-30", "holdingTon": 1045.78, "changeTon": 0.0, "gldClose": 165.63}, {"date": "2021-07-01", "holdingTon": 1043.16, "changeTon": -2.62, "gldClose": 166.2}, {"date": "2021-07-02", "holdingTon": 1042.58, "changeTon": -0.58, "gldClose": 167.29}, {"date": "2021-07-06", "holdingTon": 1042.23, "changeTon": -0.35, "gldClose": 168.12}, {"date": "2021-07-07", "holdingTon": 1040.48, "changeTon": -1.75, "gldClose": 168.76}, {"date": "2021-07-08", "holdingTon": 1040.19, "changeTon": -0.29, "gldClose": 168.65}, {"date": "2021-07-09", "holdingTon": 1040.19, "changeTon": 0.0, "gldClose": 169.21}, {"date": "2021-07-12", "holdingTon": 1037.28, "changeTon": -2.91, "gldClose": 169.0}, {"date": "2021-07-13", "holdingTon": 1037.28, "changeTon": 0.0, "gldClose": 169.22}, {"date": "2021-07-14", "holdingTon": 1034.37, "changeTon": -2.91, "gldClose": 171.04}, {"date": "2021-07-15", "holdingTon": 1034.37, "changeTon": 0.0, "gldClose": 171.07}, {"date": "2021-07-16", "holdingTon": 1028.55, "changeTon": -5.82, "gldClose": 169.41}, {"date": "2021-07-19", "holdingTon": 1028.55, "changeTon": 0.0, "gldClose": 169.61}, {"date": "2021-07-20", "holdingTon": 1028.55, "changeTon": 0.0, "gldClose": 169.39}, {"date": "2021-07-21", "holdingTon": 1028.55, "changeTon": 0.0, "gldClose": 168.76}, {"date": "2021-07-22", "holdingTon": 1027.38, "changeTon": -1.17, "gldClose": 169.09}, {"date": "2021-07-23", "holdingTon": 1027.38, "changeTon": 0.0, "gldClose": 168.56}, {"date": "2021-07-26", "holdingTon": 1025.64, "changeTon": -1.74, "gldClose": 168.16}, {"date": "2021-07-27", "holdingTon": 1025.64, "changeTon": 0.0, "gldClose": 168.44}, {"date": "2021-07-28", "holdingTon": 1025.64, "changeTon": 0.0, "gldClose": 169.29}, {"date": "2021-07-29", "holdingTon": 1031.46, "changeTon": 5.82, "gldClose": 171.17}, {"date": "2021-07-30", "holdingTon": 1031.46, "changeTon": 0.0, "gldClose": 169.82}, {"date": "2021-08-02", "holdingTon": 1029.71, "changeTon": -1.75, "gldClose": 169.61}, {"date": "2021-08-03", "holdingTon": 1027.97, "changeTon": -1.74, "gldClose": 169.49}, {"date": "2021-08-04", "holdingTon": 1027.97, "changeTon": 0.0, "gldClose": 169.53}, {"date": "2021-08-05", "holdingTon": 1027.61, "changeTon": -0.36, "gldClose": 168.86}, {"date": "2021-08-06", "holdingTon": 1025.28, "changeTon": -2.33, "gldClose": 164.64}, {"date": "2021-08-09", "holdingTon": 1023.54, "changeTon": -1.74, "gldClose": 161.72}, {"date": "2021-08-10", "holdingTon": 1023.54, "changeTon": 0.0, "gldClose": 161.77}, {"date": "2021-08-11", "holdingTon": 1023.54, "changeTon": 0.0, "gldClose": 164.0}, {"date": "2021-08-12", "holdingTon": 1023.54, "changeTon": 0.0, "gldClose": 164.04}, {"date": "2021-08-13", "holdingTon": 1021.79, "changeTon": -1.75, "gldClose": 166.39}, {"date": "2021-08-16", "holdingTon": 1020.63, "changeTon": -1.16, "gldClose": 167.22}, {"date": "2021-08-17", "holdingTon": 1017.14, "changeTon": -3.49, "gldClose": 166.97}, {"date": "2021-08-18", "holdingTon": 1015.1, "changeTon": -2.04, "gldClose": 167.1}, {"date": "2021-08-19", "holdingTon": 1015.1, "changeTon": 0.0, "gldClose": 166.61}, {"date": "2021-08-20", "holdingTon": 1011.61, "changeTon": -3.49, "gldClose": 166.7}, {"date": "2021-08-23", "holdingTon": 1006.66, "changeTon": -4.95, "gldClose": 168.73}, {"date": "2021-08-24", "holdingTon": 1004.63, "changeTon": -2.03, "gldClose": 168.65}, {"date": "2021-08-25", "holdingTon": 1001.72, "changeTon": -2.91, "gldClose": 167.48}, {"date": "2021-08-26", "holdingTon": 1001.72, "changeTon": 0.0, "gldClose": 167.67}, {"date": "2021-08-27", "holdingTon": 1001.72, "changeTon": 0.0, "gldClose": 170.19}, {"date": "2021-08-30", "holdingTon": 1001.72, "changeTon": 0.0, "gldClose": 169.35}, {"date": "2021-08-31", "holdingTon": 1000.26, "changeTon": -1.46, "gldClose": 169.69}, {"date": "2021-09-01", "holdingTon": 1000.26, "changeTon": 0.0, "gldClose": 169.7}, {"date": "2021-09-02", "holdingTon": 998.52, "changeTon": -1.74, "gldClose": 169.25}, {"date": "2021-09-03", "holdingTon": 998.52, "changeTon": 0.0, "gldClose": 171.06}, {"date": "2021-09-07", "holdingTon": 998.52, "changeTon": 0.0, "gldClose": 167.71}, {"date": "2021-09-08", "holdingTon": 998.52, "changeTon": 0.0, "gldClose": 167.29}, {"date": "2021-09-09", "holdingTon": 998.17, "changeTon": -0.35, "gldClose": 168.03}, {"date": "2021-09-10", "holdingTon": 998.17, "changeTon": 0.0, "gldClose": 167.18}, {"date": "2021-09-13", "holdingTon": 1000.21, "changeTon": 2.04, "gldClose": 167.74}, {"date": "2021-09-14", "holdingTon": 1000.21, "changeTon": 0.0, "gldClose": 168.82}, {"date": "2021-09-15", "holdingTon": 998.46, "changeTon": -1.75, "gldClose": 167.83}, {"date": "2021-09-16", "holdingTon": 999.92, "changeTon": 1.46, "gldClose": 164.03}, {"date": "2021-09-17", "holdingTon": 1001.66, "changeTon": 1.74, "gldClose": 163.77}, {"date": "2021-09-20", "holdingTon": 1001.66, "changeTon": 0.0, "gldClose": 164.94}, {"date": "2021-09-21", "holdingTon": 1000.79, "changeTon": -0.87, "gldClose": 166.04}, {"date": "2021-09-22", "holdingTon": 1000.79, "changeTon": 0.0, "gldClose": 165.42}, {"date": "2021-09-23", "holdingTon": 992.65, "changeTon": -8.14, "gldClose": 163.51}, {"date": "2021-09-24", "holdingTon": 993.52, "changeTon": 0.87, "gldClose": 163.3}, {"date": "2021-09-27", "holdingTon": 990.32, "changeTon": -3.2, "gldClose": 163.64}, {"date": "2021-09-28", "holdingTon": 990.03, "changeTon": -0.29, "gldClose": 162.05}, {"date": "2021-09-29", "holdingTon": 990.03, "changeTon": 0.0, "gldClose": 161.32}, {"date": "2021-09-30", "holdingTon": 990.03, "changeTon": 0.0, "gldClose": 164.22}, {"date": "2021-10-01", "holdingTon": 986.54, "changeTon": -3.49, "gldClose": 164.59}, {"date": "2021-10-04", "holdingTon": 986.54, "changeTon": 0.0, "gldClose": 165.36}, {"date": "2021-10-05", "holdingTon": 986.54, "changeTon": 0.0, "gldClose": 164.59}, {"date": "2021-10-06", "holdingTon": 986.54, "changeTon": 0.0, "gldClose": 165.03}, {"date": "2021-10-07", "holdingTon": 986.54, "changeTon": 0.0, "gldClose": 164.16}, {"date": "2021-10-08", "holdingTon": 985.05, "changeTon": -1.49, "gldClose": 164.23}, {"date": "2021-10-11", "holdingTon": 985.05, "changeTon": 0.0, "gldClose": 163.92}, {"date": "2021-10-12", "holdingTon": 985.05, "changeTon": 0.0, "gldClose": 164.66}, {"date": "2021-10-13", "holdingTon": 982.72, "changeTon": -2.33, "gldClose": 167.59}, {"date": "2021-10-14", "holdingTon": 982.72, "changeTon": 0.0, "gldClose": 168.0}, {"date": "2021-10-15", "holdingTon": 980.1, "changeTon": -2.62, "gldClose": 165.33}, {"date": "2021-10-18", "holdingTon": 980.1, "changeTon": 0.0, "gldClose": 164.92}, {"date": "2021-10-19", "holdingTon": 980.1, "changeTon": 0.0, "gldClose": 165.45}, {"date": "2021-10-20", "holdingTon": 980.1, "changeTon": 0.0, "gldClose": 166.9}, {"date": "2021-10-21", "holdingTon": 978.07, "changeTon": -2.03, "gldClose": 166.75}, {"date": "2021-10-22", "holdingTon": 978.07, "changeTon": 0.0, "gldClose": 167.77}, {"date": "2021-10-25", "holdingTon": 978.07, "changeTon": 0.0, "gldClose": 168.93}, {"date": "2021-10-26", "holdingTon": 979.81, "changeTon": 1.74, "gldClose": 167.68}, {"date": "2021-10-27", "holdingTon": 983.01, "changeTon": 3.2, "gldClose": 168.12}, {"date": "2021-10-28", "holdingTon": 982.14, "changeTon": -0.87, "gldClose": 168.08}, {"date": "2021-10-29", "holdingTon": 982.14, "changeTon": 0.0, "gldClose": 166.65}, {"date": "2021-11-01", "holdingTon": 979.52, "changeTon": -2.62, "gldClose": 167.52}, {"date": "2021-11-02", "holdingTon": 979.52, "changeTon": 0.0, "gldClose": 167.16}, {"date": "2021-11-03", "holdingTon": 978.07, "changeTon": -1.45, "gldClose": 165.77}, {"date": "2021-11-04", "holdingTon": 975.41, "changeTon": -2.66, "gldClose": 167.65}, {"date": "2021-11-05", "holdingTon": 975.41, "changeTon": 0.0, "gldClose": 169.84}, {"date": "2021-11-08", "holdingTon": 975.41, "changeTon": 0.0, "gldClose": 170.45}, {"date": "2021-11-09", "holdingTon": 975.41, "changeTon": 0.0, "gldClose": 171.29}, {"date": "2021-11-10", "holdingTon": 975.41, "changeTon": 0.0, "gldClose": 173.15}, {"date": "2021-11-11", "holdingTon": 975.99, "changeTon": 0.58, "gldClose": 174.12}, {"date": "2021-11-12", "holdingTon": 975.99, "changeTon": 0.0, "gldClose": 174.45}, {"date": "2021-11-15", "holdingTon": 975.99, "changeTon": 0.0, "gldClose": 174.18}, {"date": "2021-11-16", "holdingTon": 975.99, "changeTon": 0.0, "gldClose": 172.92}, {"date": "2021-11-17", "holdingTon": 976.87, "changeTon": 0.88, "gldClose": 174.5}, {"date": "2021-11-18", "holdingTon": 976.87, "changeTon": 0.0, "gldClose": 173.94}, {"date": "2021-11-19", "holdingTon": 985.0, "changeTon": 8.13, "gldClose": 172.61}, {"date": "2021-11-22", "holdingTon": 990.53, "changeTon": 5.53, "gldClose": 168.74}, {"date": "2021-11-23", "holdingTon": 991.11, "changeTon": 0.58, "gldClose": 167.28}, {"date": "2021-11-24", "holdingTon": 991.11, "changeTon": 0.0, "gldClose": 167.12}, {"date": "2021-11-26", "holdingTon": 992.85, "changeTon": 1.74, "gldClose": 166.85}, {"date": "2021-11-29", "holdingTon": 992.85, "changeTon": 0.0, "gldClose": 166.62}, {"date": "2021-11-30", "holdingTon": 992.85, "changeTon": 0.0, "gldClose": 165.5}, {"date": "2021-12-01", "holdingTon": 990.82, "changeTon": -2.03, "gldClose": 166.16}, {"date": "2021-12-02", "holdingTon": 986.17, "changeTon": -4.65, "gldClose": 165.24}, {"date": "2021-12-03", "holdingTon": 984.38, "changeTon": -1.79, "gldClose": 166.63}, {"date": "2021-12-06", "holdingTon": 982.64, "changeTon": -1.74, "gldClose": 166.22}, {"date": "2021-12-07", "holdingTon": 982.64, "changeTon": 0.0, "gldClose": 166.81}, {"date": "2021-12-08", "holdingTon": 982.64, "changeTon": 0.0, "gldClose": 166.9}, {"date": "2021-12-09", "holdingTon": 982.64, "changeTon": 0.0, "gldClose": 165.88}, {"date": "2021-12-10", "holdingTon": 982.64, "changeTon": 0.0, "gldClose": 166.58}, {"date": "2021-12-13", "holdingTon": 982.64, "changeTon": 0.0, "gldClose": 167.0}, {"date": "2021-12-14", "holdingTon": 980.6, "changeTon": -2.04, "gldClose": 165.44}, {"date": "2021-12-15", "holdingTon": 977.7, "changeTon": -2.9, "gldClose": 166.15}, {"date": "2021-12-16", "holdingTon": 977.7, "changeTon": 0.0, "gldClose": 168.16}, {"date": "2021-12-17", "holdingTon": 978.57, "changeTon": 0.87, "gldClose": 167.8}, {"date": "2021-12-20", "holdingTon": 978.57, "changeTon": 0.0, "gldClose": 167.09}, {"date": "2021-12-21", "holdingTon": 978.57, "changeTon": 0.0, "gldClose": 167.02}, {"date": "2021-12-22", "holdingTon": 973.63, "changeTon": -4.94, "gldClose": 168.59}, {"date": "2021-12-23", "holdingTon": 973.63, "changeTon": 0.0, "gldClose": 168.97}, {"date": "2021-12-27", "holdingTon": 973.63, "changeTon": 0.0, "gldClose": 169.37}, {"date": "2021-12-28", "holdingTon": 975.66, "changeTon": 2.03, "gldClose": 168.64}, {"date": "2021-12-29", "holdingTon": 975.66, "changeTon": 0.0, "gldClose": 168.59}, {"date": "2021-12-30", "holdingTon": 975.66, "changeTon": 0.0, "gldClose": 169.8}, {"date": "2021-12-31", "holdingTon": 975.66, "changeTon": 0.0, "gldClose": 170.96}, {"date": "2022-01-03", "holdingTon": 975.66, "changeTon": 0.0, "gldClose": 168.33}, {"date": "2022-01-04", "holdingTon": 980.31, "changeTon": 4.65, "gldClose": 169.57}, {"date": "2022-01-05", "holdingTon": 979.99, "changeTon": -0.32, "gldClose": 169.06}, {"date": "2022-01-06", "holdingTon": 978.82, "changeTon": -1.17, "gldClose": 166.99}, {"date": "2022-01-07", "holdingTon": 977.08, "changeTon": -1.74, "gldClose": 167.75}, {"date": "2022-01-10", "holdingTon": 977.08, "changeTon": 0.0, "gldClose": 168.26}, {"date": "2022-01-11", "holdingTon": 976.21, "changeTon": -0.87, "gldClose": 170.29}, {"date": "2022-01-12", "holdingTon": 976.21, "changeTon": 0.0, "gldClose": 170.74}, {"date": "2022-01-13", "holdingTon": 976.21, "changeTon": 0.0, "gldClose": 170.16}, {"date": "2022-01-14", "holdingTon": 976.21, "changeTon": 0.0, "gldClose": 169.67}, {"date": "2022-01-18", "holdingTon": 976.21, "changeTon": 0.0, "gldClose": 169.39}, {"date": "2022-01-19", "holdingTon": 981.44, "changeTon": 5.23, "gldClose": 172.08}, {"date": "2022-01-20", "holdingTon": 980.86, "changeTon": -0.58, "gldClose": 171.65}, {"date": "2022-01-21", "holdingTon": 1008.45, "changeTon": 27.59, "gldClose": 171.09}, {"date": "2022-01-24", "holdingTon": 1008.45, "changeTon": 0.0, "gldClose": 172.03}, {"date": "2022-01-25", "holdingTon": 1013.1, "changeTon": 4.65, "gldClose": 172.58}, {"date": "2022-01-26", "holdingTon": 1014.26, "changeTon": 1.16, "gldClose": 169.79}, {"date": "2022-01-27", "holdingTon": 1014.26, "changeTon": 0.0, "gldClose": 167.6}, {"date": "2022-01-28", "holdingTon": 1014.26, "changeTon": 0.0, "gldClose": 167.1}, {"date": "2022-01-31", "holdingTon": 1017.75, "changeTon": 3.49, "gldClose": 168.09}, {"date": "2022-02-01", "holdingTon": 1018.04, "changeTon": 0.29, "gldClose": 168.23}, {"date": "2022-02-02", "holdingTon": 1016.59, "changeTon": -1.45, "gldClose": 168.84}, {"date": "2022-02-03", "holdingTon": 1014.84, "changeTon": -1.75, "gldClose": 168.6}, {"date": "2022-02-04", "holdingTon": 1011.6, "changeTon": -3.24, "gldClose": 168.86}, {"date": "2022-02-07", "holdingTon": 1011.6, "changeTon": 0.0, "gldClose": 170.11}, {"date": "2022-02-08", "holdingTon": 1015.96, "changeTon": 4.36, "gldClose": 170.63}, {"date": "2022-02-09", "holdingTon": 1015.96, "changeTon": 0.0, "gldClose": 171.21}, {"date": "2022-02-10", "holdingTon": 1015.96, "changeTon": 0.0, "gldClose": 170.56}, {"date": "2022-02-11", "holdingTon": 1019.44, "changeTon": 3.48, "gldClose": 173.81}, {"date": "2022-02-14", "holdingTon": 1019.44, "changeTon": 0.0, "gldClose": 174.74}, {"date": "2022-02-15", "holdingTon": 1019.44, "changeTon": 0.0, "gldClose": 173.08}, {"date": "2022-02-16", "holdingTon": 1019.44, "changeTon": 0.0, "gldClose": 174.86}, {"date": "2022-02-17", "holdingTon": 1019.44, "changeTon": 0.0, "gldClose": 177.25}, {"date": "2022-02-18", "holdingTon": 1024.09, "changeTon": 4.65, "gldClose": 177.12}, {"date": "2022-02-22", "holdingTon": 1024.09, "changeTon": 0.0, "gldClose": 177.49}, {"date": "2022-02-23", "holdingTon": 1029.31, "changeTon": 5.22, "gldClose": 178.29}, {"date": "2022-02-24", "holdingTon": 1029.31, "changeTon": 0.0, "gldClose": 177.14}, {"date": "2022-02-25", "holdingTon": 1026.99, "changeTon": -2.32, "gldClose": 176.55}, {"date": "2022-02-28", "holdingTon": 1029.02, "changeTon": 2.03, "gldClose": 178.38}, {"date": "2022-03-01", "holdingTon": 1042.38, "changeTon": 13.36, "gldClose": 181.62}, {"date": "2022-03-02", "holdingTon": 1050.22, "changeTon": 7.84, "gldClose": 179.73}, {"date": "2022-03-03", "holdingTon": 1050.22, "changeTon": 0.0, "gldClose": 180.8}, {"date": "2022-03-04", "holdingTon": 1054.28, "changeTon": 4.06, "gldClose": 183.68}, {"date": "2022-03-07", "holdingTon": 1062.7, "changeTon": 8.42, "gldClose": 186.41}, {"date": "2022-03-08", "holdingTon": 1067.34, "changeTon": 4.64, "gldClose": 191.51}, {"date": "2022-03-09", "holdingTon": 1063.28, "changeTon": -4.06, "gldClose": 185.82}, {"date": "2022-03-10", "holdingTon": 1061.53, "changeTon": -1.75, "gldClose": 186.4}, {"date": "2022-03-11", "holdingTon": 1064.15, "changeTon": 2.62, "gldClose": 185.09}, {"date": "2022-03-14", "holdingTon": 1064.15, "changeTon": 0.0, "gldClose": 182.3}, {"date": "2022-03-15", "holdingTon": 1061.83, "changeTon": -2.32, "gldClose": 178.89}, {"date": "2022-03-16", "holdingTon": 1070.53, "changeTon": 8.7, "gldClose": 180.01}, {"date": "2022-03-17", "holdingTon": 1073.44, "changeTon": 2.91, "gldClose": 180.89}, {"date": "2022-03-18", "holdingTon": 1082.44, "changeTon": 9.0, "gldClose": 179.3}, {"date": "2022-03-21", "holdingTon": 1083.6, "changeTon": 1.16, "gldClose": 180.67}, {"date": "2022-03-22", "holdingTon": 1083.6, "changeTon": 0.0, "gldClose": 179.36}, {"date": "2022-03-23", "holdingTon": 1087.66, "changeTon": 4.06, "gldClose": 181.81}, {"date": "2022-03-24", "holdingTon": 1087.66, "changeTon": 0.0, "gldClose": 183.13}, {"date": "2022-03-25", "holdingTon": 1093.18, "changeTon": 5.52, "gldClose": 182.38}, {"date": "2022-03-28", "holdingTon": 1093.18, "changeTon": 0.0, "gldClose": 179.06}, {"date": "2022-03-29", "holdingTon": 1091.44, "changeTon": -1.74, "gldClose": 179.14}, {"date": "2022-03-30", "holdingTon": 1091.44, "changeTon": 0.0, "gldClose": 180.58}, {"date": "2022-03-31", "holdingTon": 1091.44, "changeTon": 0.0, "gldClose": 180.65}, {"date": "2022-04-01", "holdingTon": 1091.73, "changeTon": 0.29, "gldClose": 179.5}, {"date": "2022-04-04", "holdingTon": 1089.98, "changeTon": -1.75, "gldClose": 180.37}, {"date": "2022-04-05", "holdingTon": 1087.3, "changeTon": -2.68, "gldClose": 179.24}, {"date": "2022-04-06", "holdingTon": 1087.3, "changeTon": 0.0, "gldClose": 179.66}, {"date": "2022-04-07", "holdingTon": 1088.75, "changeTon": 1.45, "gldClose": 180.34}, {"date": "2022-04-08", "holdingTon": 1090.49, "changeTon": 1.74, "gldClose": 181.47}, {"date": "2022-04-11", "holdingTon": 1090.49, "changeTon": 0.0, "gldClose": 182.37}, {"date": "2022-04-12", "holdingTon": 1093.1, "changeTon": 2.61, "gldClose": 183.77}, {"date": "2022-04-13", "holdingTon": 1104.42, "changeTon": 11.32, "gldClose": 184.65}, {"date": "2022-04-14", "holdingTon": 1099.49, "changeTon": -4.93, "gldClose": 184.04}, {"date": "2022-04-18", "holdingTon": 1100.36, "changeTon": 0.87, "gldClose": 184.61}, {"date": "2022-04-19", "holdingTon": 1106.74, "changeTon": 6.38, "gldClose": 181.82}, {"date": "2022-04-20", "holdingTon": 1106.74, "changeTon": 0.0, "gldClose": 182.71}, {"date": "2022-04-21", "holdingTon": 1104.13, "changeTon": -2.61, "gldClose": 182.06}, {"date": "2022-04-22", "holdingTon": 1104.13, "changeTon": 0.0, "gldClose": 180.29}, {"date": "2022-04-25", "holdingTon": 1101.23, "changeTon": -2.9, "gldClose": 177.05}, {"date": "2022-04-26", "holdingTon": 1099.49, "changeTon": -1.74, "gldClose": 177.32}, {"date": "2022-04-27", "holdingTon": 1095.71, "changeTon": -3.78, "gldClose": 175.98}, {"date": "2022-04-28", "holdingTon": 1095.71, "changeTon": 0.0, "gldClose": 176.93}, {"date": "2022-04-29", "holdingTon": 1094.55, "changeTon": -1.16, "gldClose": 176.91}, {"date": "2022-05-02", "holdingTon": 1092.23, "changeTon": -2.32, "gldClose": 173.63}, {"date": "2022-05-03", "holdingTon": 1089.04, "changeTon": -3.19, "gldClose": 174.09}, {"date": "2022-05-04", "holdingTon": 1089.04, "changeTon": 0.0, "gldClose": 175.8}, {"date": "2022-05-05", "holdingTon": 1084.98, "changeTon": -4.06, "gldClose": 175.13}, {"date": "2022-05-06", "holdingTon": 1082.0, "changeTon": -2.98, "gldClose": 175.42}, {"date": "2022-05-09", "holdingTon": 1075.9, "changeTon": -6.1, "gldClose": 172.88}, {"date": "2022-05-10", "holdingTon": 1068.65, "changeTon": -7.25, "gldClose": 171.42}, {"date": "2022-05-11", "holdingTon": 1066.62, "changeTon": -2.03, "gldClose": 172.82}, {"date": "2022-05-12", "holdingTon": 1060.82, "changeTon": -5.8, "gldClose": 170.17}, {"date": "2022-05-13", "holdingTon": 1055.89, "changeTon": -4.93, "gldClose": 168.79}, {"date": "2022-05-16", "holdingTon": 1053.28, "changeTon": -2.61, "gldClose": 170.4}, {"date": "2022-05-17", "holdingTon": 1049.21, "changeTon": -4.07, "gldClose": 169.33}, {"date": "2022-05-18", "holdingTon": 1049.21, "changeTon": 0.0, "gldClose": 169.42}, {"date": "2022-05-19", "holdingTon": 1056.18, "changeTon": 6.97, "gldClose": 171.91}, {"date": "2022-05-20", "holdingTon": 1063.43, "changeTon": 7.25, "gldClose": 172.03}, {"date": "2022-05-23", "holdingTon": 1068.07, "changeTon": 4.64, "gldClose": 172.83}, {"date": "2022-05-24", "holdingTon": 1068.07, "changeTon": 0.0, "gldClose": 174.13}, {"date": "2022-05-25", "holdingTon": 1069.81, "changeTon": 1.74, "gldClose": 173.08}, {"date": "2022-05-26", "holdingTon": 1069.81, "changeTon": 0.0, "gldClose": 172.76}, {"date": "2022-05-27", "holdingTon": 1069.81, "changeTon": 0.0, "gldClose": 172.85}, {"date": "2022-05-31", "holdingTon": 1068.36, "changeTon": -1.45, "gldClose": 171.14}, {"date": "2022-06-01", "holdingTon": 1067.2, "changeTon": -1.16, "gldClose": 172.23}, {"date": "2022-06-02", "holdingTon": 1066.04, "changeTon": -1.16, "gldClose": 174.35}, {"date": "2022-06-03", "holdingTon": 1066.04, "changeTon": 0.0, "gldClose": 172.58}, {"date": "2022-06-06", "holdingTon": 1063.06, "changeTon": -2.98, "gldClose": 171.82}, {"date": "2022-06-07", "holdingTon": 1063.06, "changeTon": 0.0, "gldClose": 172.94}, {"date": "2022-06-08", "holdingTon": 1065.39, "changeTon": 2.33, "gldClose": 172.78}, {"date": "2022-06-09", "holdingTon": 1065.39, "changeTon": 0.0, "gldClose": 172.23}, {"date": "2022-06-10", "holdingTon": 1068.87, "changeTon": 3.48, "gldClose": 174.54}, {"date": "2022-06-13", "holdingTon": 1068.87, "changeTon": 0.0, "gldClose": 169.93}, {"date": "2022-06-14", "holdingTon": 1063.94, "changeTon": -4.93, "gldClose": 168.57}, {"date": "2022-06-15", "holdingTon": 1063.94, "changeTon": 0.0, "gldClose": 170.77}, {"date": "2022-06-16", "holdingTon": 1063.94, "changeTon": 0.0, "gldClose": 172.69}, {"date": "2022-06-17", "holdingTon": 1075.54, "changeTon": 11.6, "gldClose": 171.27}, {"date": "2022-06-21", "holdingTon": 1073.8, "changeTon": -1.74, "gldClose": 170.63}, {"date": "2022-06-22", "holdingTon": 1071.77, "changeTon": -2.03, "gldClose": 171.31}, {"date": "2022-06-23", "holdingTon": 1063.07, "changeTon": -8.7, "gldClose": 170.26}, {"date": "2022-06-24", "holdingTon": 1061.04, "changeTon": -2.03, "gldClose": 170.09}, {"date": "2022-06-27", "holdingTon": 1056.4, "changeTon": -4.64, "gldClose": 169.9}, {"date": "2022-06-28", "holdingTon": 1054.37, "changeTon": -2.03, "gldClose": 169.62}, {"date": "2022-06-29", "holdingTon": 1052.63, "changeTon": -1.74, "gldClose": 169.49}, {"date": "2022-06-30", "holdingTon": 1050.31, "changeTon": -2.32, "gldClose": 168.46}, {"date": "2022-07-01", "holdingTon": 1041.9, "changeTon": -8.41, "gldClose": 168.32}, {"date": "2022-07-05", "holdingTon": 1032.04, "changeTon": -9.86, "gldClose": 164.75}, {"date": "2022-07-06", "holdingTon": 1024.43, "changeTon": -7.61, "gldClose": 162.14}, {"date": "2022-07-07", "holdingTon": 1024.43, "changeTon": 0.0, "gldClose": 162.23}, {"date": "2022-07-08", "holdingTon": 1023.27, "changeTon": -1.16, "gldClose": 162.3}, {"date": "2022-07-11", "holdingTon": 1023.27, "changeTon": 0.0, "gldClose": 161.43}, {"date": "2022-07-12", "holdingTon": 1021.53, "changeTon": -1.74, "gldClose": 160.83}, {"date": "2022-07-13", "holdingTon": 1019.79, "changeTon": -1.74, "gldClose": 161.6}, {"date": "2022-07-14", "holdingTon": 1016.89, "changeTon": -2.9, "gldClose": 159.33}, {"date": "2022-07-15", "holdingTon": 1014.28, "changeTon": -2.61, "gldClose": 159.01}, {"date": "2022-07-18", "holdingTon": 1009.06, "changeTon": -5.22, "gldClose": 159.16}, {"date": "2022-07-19", "holdingTon": 1009.06, "changeTon": 0.0, "gldClose": 159.54}, {"date": "2022-07-20", "holdingTon": 1005.87, "changeTon": -3.19, "gldClose": 158.04}, {"date": "2022-07-21", "holdingTon": 1005.87, "changeTon": 0.0, "gldClose": 160.27}, {"date": "2022-07-22", "holdingTon": 1005.87, "changeTon": 0.0, "gldClose": 160.67}, {"date": "2022-07-25", "holdingTon": 1005.29, "changeTon": -0.58, "gldClose": 160.23}, {"date": "2022-07-26", "holdingTon": 1005.29, "changeTon": 0.0, "gldClose": 160.04}, {"date": "2022-07-27", "holdingTon": 1005.29, "changeTon": 0.0, "gldClose": 161.67}, {"date": "2022-07-28", "holdingTon": 1005.29, "changeTon": 0.0, "gldClose": 163.64}, {"date": "2022-07-29", "holdingTon": 1005.87, "changeTon": 0.58, "gldClose": 164.1}, {"date": "2022-08-01", "holdingTon": 1005.87, "changeTon": 0.0, "gldClose": 165.03}, {"date": "2022-08-02", "holdingTon": 1002.97, "changeTon": -2.9, "gldClose": 164.05}, {"date": "2022-08-03", "holdingTon": 1000.65, "changeTon": -2.32, "gldClose": 164.45}, {"date": "2022-08-04", "holdingTon": 1000.32, "changeTon": -0.33, "gldClose": 167.17}, {"date": "2022-08-05", "holdingTon": 999.16, "changeTon": -1.16, "gldClose": 165.29}, {"date": "2022-08-08", "holdingTon": 999.16, "changeTon": 0.0, "gldClose": 166.69}, {"date": "2022-08-09", "holdingTon": 999.16, "changeTon": 0.0, "gldClose": 167.2}, {"date": "2022-08-10", "holdingTon": 997.42, "changeTon": -1.74, "gldClose": 166.78}, {"date": "2022-08-11", "holdingTon": 997.42, "changeTon": 0.0, "gldClose": 166.34}, {"date": "2022-08-12", "holdingTon": 995.97, "changeTon": -1.45, "gldClose": 167.87}, {"date": "2022-08-15", "holdingTon": 993.94, "changeTon": -2.03, "gldClose": 165.71}, {"date": "2022-08-16", "holdingTon": 992.2, "changeTon": -1.74, "gldClose": 165.42}, {"date": "2022-08-17", "holdingTon": 989.01, "changeTon": -3.19, "gldClose": 164.35}, {"date": "2022-08-18", "holdingTon": 985.83, "changeTon": -3.18, "gldClose": 163.92}, {"date": "2022-08-19", "holdingTon": 989.01, "changeTon": 3.18, "gldClose": 162.72}, {"date": "2022-08-22", "holdingTon": 987.56, "changeTon": -1.45, "gldClose": 161.64}, {"date": "2022-08-23", "holdingTon": 984.38, "changeTon": -3.18, "gldClose": 162.77}, {"date": "2022-08-24", "holdingTon": 984.38, "changeTon": 0.0, "gldClose": 163.25}, {"date": "2022-08-25", "holdingTon": 984.38, "changeTon": 0.0, "gldClose": 163.75}, {"date": "2022-08-26", "holdingTon": 982.64, "changeTon": -1.74, "gldClose": 161.76}, {"date": "2022-08-29", "holdingTon": 980.61, "changeTon": -2.03, "gldClose": 161.86}, {"date": "2022-08-30", "holdingTon": 976.26, "changeTon": -4.35, "gldClose": 160.51}, {"date": "2022-08-31", "holdingTon": 973.37, "changeTon": -2.89, "gldClose": 159.27}, {"date": "2022-09-01", "holdingTon": 973.08, "changeTon": -0.29, "gldClose": 157.87}, {"date": "2022-09-02", "holdingTon": 973.08, "changeTon": 0.0, "gldClose": 159.26}, {"date": "2022-09-06", "holdingTon": 971.05, "changeTon": -2.03, "gldClose": 158.33}, {"date": "2022-09-07", "holdingTon": 971.05, "changeTon": 0.0, "gldClose": 159.94}, {"date": "2022-09-08", "holdingTon": 968.15, "changeTon": -2.9, "gldClose": 158.98}, {"date": "2022-09-09", "holdingTon": 966.64, "changeTon": -1.51, "gldClose": 159.82}, {"date": "2022-09-12", "holdingTon": 964.91, "changeTon": -1.73, "gldClose": 160.63}, {"date": "2022-09-13", "holdingTon": 962.88, "changeTon": -2.03, "gldClose": 158.54}, {"date": "2022-09-14", "holdingTon": 960.56, "changeTon": -2.32, "gldClose": 157.93}, {"date": "2022-09-15", "holdingTon": 962.01, "changeTon": 1.45, "gldClose": 154.98}, {"date": "2022-09-16", "holdingTon": 960.85, "changeTon": -1.16, "gldClose": 155.84}, {"date": "2022-09-19", "holdingTon": 957.95, "changeTon": -2.9, "gldClose": 155.96}, {"date": "2022-09-20", "holdingTon": 953.32, "changeTon": -4.63, "gldClose": 155.07}, {"date": "2022-09-21", "holdingTon": 952.16, "changeTon": -1.16, "gldClose": 155.79}, {"date": "2022-09-22", "holdingTon": 950.13, "changeTon": -2.03, "gldClose": 155.7}, {"date": "2022-09-23", "holdingTon": 947.23, "changeTon": -2.9, "gldClose": 153.01}, {"date": "2022-09-26", "holdingTon": 943.47, "changeTon": -3.76, "gldClose": 151.23}, {"date": "2022-09-27", "holdingTon": 940.86, "changeTon": -2.61, "gldClose": 151.54}, {"date": "2022-09-28", "holdingTon": 943.18, "changeTon": 2.32, "gldClose": 154.69}, {"date": "2022-09-29", "holdingTon": 941.15, "changeTon": -2.03, "gldClose": 154.66}, {"date": "2022-09-30", "holdingTon": 939.7, "changeTon": -1.45, "gldClose": 154.67}, {"date": "2022-10-03", "holdingTon": 942.89, "changeTon": 3.19, "gldClose": 158.43}, {"date": "2022-10-04", "holdingTon": 944.63, "changeTon": 1.74, "gldClose": 160.7}, {"date": "2022-10-05", "holdingTon": 946.34, "changeTon": 1.71, "gldClose": 159.81}, {"date": "2022-10-06", "holdingTon": 946.34, "changeTon": 0.0, "gldClose": 159.63}, {"date": "2022-10-07", "holdingTon": 944.31, "changeTon": -2.03, "gldClose": 157.88}, {"date": "2022-10-10", "holdingTon": 944.31, "changeTon": 0.0, "gldClose": 155.48}, {"date": "2022-10-11", "holdingTon": 944.31, "changeTon": 0.0, "gldClose": 155.16}, {"date": "2022-10-12", "holdingTon": 945.47, "changeTon": 1.16, "gldClose": 155.99}, {"date": "2022-10-13", "holdingTon": 944.31, "changeTon": -1.16, "gldClose": 154.91}, {"date": "2022-10-14", "holdingTon": 941.13, "changeTon": -3.18, "gldClose": 152.98}, {"date": "2022-10-17", "holdingTon": 939.1, "changeTon": -2.03, "gldClose": 153.42}, {"date": "2022-10-18", "holdingTon": 938.81, "changeTon": -0.29, "gldClose": 153.75}, {"date": "2022-10-19", "holdingTon": 932.73, "changeTon": -6.08, "gldClose": 151.69}, {"date": "2022-10-20", "holdingTon": 930.99, "changeTon": -1.74, "gldClose": 151.45}, {"date": "2022-10-21", "holdingTon": 928.1, "changeTon": -2.89, "gldClose": 154.15}, {"date": "2022-10-24", "holdingTon": 928.39, "changeTon": 0.29, "gldClose": 153.65}, {"date": "2022-10-25", "holdingTon": 928.39, "changeTon": 0.0, "gldClose": 154.0}, {"date": "2022-10-26", "holdingTon": 928.39, "changeTon": 0.0, "gldClose": 154.98}, {"date": "2022-10-27", "holdingTon": 925.2, "changeTon": -3.19, "gldClose": 154.74}, {"date": "2022-10-28", "holdingTon": 922.59, "changeTon": -2.61, "gldClose": 153.16}, {"date": "2022-10-31", "holdingTon": 920.57, "changeTon": -2.02, "gldClose": 151.91}, {"date": "2022-11-01", "holdingTon": 919.12, "changeTon": -1.45, "gldClose": 153.46}, {"date": "2022-11-02", "holdingTon": 915.07, "changeTon": -4.05, "gldClose": 152.39}, {"date": "2022-11-03", "holdingTon": 911.59, "changeTon": -3.48, "gldClose": 151.81}, {"date": "2022-11-04", "holdingTon": 906.96, "changeTon": -4.63, "gldClose": 156.47}, {"date": "2022-11-07", "holdingTon": 905.48, "changeTon": -1.48, "gldClose": 155.85}, {"date": "2022-11-08", "holdingTon": 908.38, "changeTon": 2.9, "gldClose": 159.45}, {"date": "2022-11-09", "holdingTon": 908.38, "changeTon": 0.0, "gldClose": 158.65}, {"date": "2022-11-10", "holdingTon": 911.57, "changeTon": 3.19, "gldClose": 163.48}, {"date": "2022-11-11", "holdingTon": 910.12, "changeTon": -1.45, "gldClose": 164.56}, {"date": "2022-11-14", "holdingTon": 910.41, "changeTon": 0.29, "gldClose": 164.92}, {"date": "2022-11-15", "holdingTon": 904.62, "changeTon": -5.79, "gldClose": 165.5}, {"date": "2022-11-16", "holdingTon": 906.35, "changeTon": 1.73, "gldClose": 165.12}, {"date": "2022-11-17", "holdingTon": 906.35, "changeTon": 0.0, "gldClose": 163.92}, {"date": "2022-11-18", "holdingTon": 904.62, "changeTon": -1.73, "gldClose": 162.79}, {"date": "2022-11-21", "holdingTon": 906.06, "changeTon": 1.44, "gldClose": 161.88}, {"date": "2022-11-22", "holdingTon": 906.93, "changeTon": 0.87, "gldClose": 162.07}, {"date": "2022-11-23", "holdingTon": 906.93, "changeTon": 0.0, "gldClose": 163.08}, {"date": "2022-11-25", "holdingTon": 908.96, "changeTon": 2.03, "gldClose": 163.22}, {"date": "2022-11-28", "holdingTon": 908.09, "changeTon": -0.87, "gldClose": 161.93}, {"date": "2022-11-29", "holdingTon": 908.09, "changeTon": 0.0, "gldClose": 162.73}, {"date": "2022-11-30", "holdingTon": 908.09, "changeTon": 0.0, "gldClose": 164.81}, {"date": "2022-12-01", "holdingTon": 906.64, "changeTon": -1.45, "gldClose": 167.84}, {"date": "2022-12-02", "holdingTon": 905.49, "changeTon": -1.15, "gldClose": 167.26}, {"date": "2022-12-05", "holdingTon": 903.46, "changeTon": -2.03, "gldClose": 164.39}, {"date": "2022-12-06", "holdingTon": 906.06, "changeTon": 2.6, "gldClose": 164.84}, {"date": "2022-12-07", "holdingTon": 908.09, "changeTon": 2.03, "gldClose": 166.33}, {"date": "2022-12-08", "holdingTon": 908.09, "changeTon": 0.0, "gldClose": 166.47}, {"date": "2022-12-09", "holdingTon": 910.4, "changeTon": 2.31, "gldClose": 167.06}, {"date": "2022-12-12", "holdingTon": 910.4, "changeTon": 0.0, "gldClose": 165.68}, {"date": "2022-12-13", "holdingTon": 912.72, "changeTon": 2.32, "gldClose": 168.51}, {"date": "2022-12-14", "holdingTon": 911.56, "changeTon": -1.16, "gldClose": 168.1}, {"date": "2022-12-15", "holdingTon": 913.88, "changeTon": 2.32, "gldClose": 165.35}, {"date": "2022-12-16", "holdingTon": 910.4, "changeTon": -3.48, "gldClose": 166.79}, {"date": "2022-12-19", "holdingTon": 912.14, "changeTon": 1.74, "gldClose": 166.32}, {"date": "2022-12-20", "holdingTon": 913.88, "changeTon": 1.74, "gldClose": 169.08}, {"date": "2022-12-21", "holdingTon": 913.88, "changeTon": 0.0, "gldClose": 168.8}, {"date": "2022-12-22", "holdingTon": 913.88, "changeTon": 0.0, "gldClose": 166.76}, {"date": "2022-12-23", "holdingTon": 913.01, "changeTon": -0.87, "gldClose": 167.26}, {"date": "2022-12-27", "holdingTon": 918.51, "changeTon": 5.5, "gldClose": 168.67}, {"date": "2022-12-28", "holdingTon": 918.51, "changeTon": 0.0, "gldClose": 167.91}, {"date": "2022-12-29", "holdingTon": 918.51, "changeTon": 0.0, "gldClose": 168.85}, {"date": "2022-12-30", "holdingTon": 917.64, "changeTon": -0.87, "gldClose": 169.64}, {"date": "2023-01-03", "holdingTon": 917.64, "changeTon": 0.0, "gldClose": 171.06}, {"date": "2023-01-04", "holdingTon": 916.77, "changeTon": -0.87, "gldClose": 172.67}, {"date": "2023-01-05", "holdingTon": 916.77, "changeTon": 0.0, "gldClose": 170.52}, {"date": "2023-01-06", "holdingTon": 915.32, "changeTon": -1.45, "gldClose": 173.71}, {"date": "2023-01-09", "holdingTon": 915.32, "changeTon": 0.0, "gldClose": 174.1}, {"date": "2023-01-10", "holdingTon": 914.17, "changeTon": -1.15, "gldClose": 174.74}, {"date": "2023-01-11", "holdingTon": 912.43, "changeTon": -1.74, "gldClose": 174.62}, {"date": "2023-01-12", "holdingTon": 912.14, "changeTon": -0.29, "gldClose": 176.64}, {"date": "2023-01-13", "holdingTon": 912.14, "changeTon": 0.0, "gldClose": 178.76}, {"date": "2023-01-17", "holdingTon": 909.24, "changeTon": -2.9, "gldClose": 177.59}, {"date": "2023-01-18", "holdingTon": 910.98, "changeTon": 1.74, "gldClose": 177.08}, {"date": "2023-01-19", "holdingTon": 912.43, "changeTon": 1.45, "gldClose": 179.89}, {"date": "2023-01-20", "holdingTon": 917.05, "changeTon": 4.62, "gldClose": 179.29}, {"date": "2023-01-23", "holdingTon": 917.05, "changeTon": 0.0, "gldClose": 179.63}, {"date": "2023-01-24", "holdingTon": 917.34, "changeTon": 0.29, "gldClose": 180.28}, {"date": "2023-01-25", "holdingTon": 919.37, "changeTon": 2.03, "gldClose": 181.11}, {"date": "2023-01-26", "holdingTon": 919.37, "changeTon": 0.0, "gldClose": 179.47}, {"date": "2023-01-27", "holdingTon": 918.5, "changeTon": -0.87, "gldClose": 179.22}, {"date": "2023-01-30", "holdingTon": 917.05, "changeTon": -1.45, "gldClose": 178.76}, {"date": "2023-01-31", "holdingTon": 917.05, "changeTon": 0.0, "gldClose": 179.41}, {"date": "2023-02-01", "holdingTon": 918.5, "changeTon": 1.45, "gldClose": 181.67}, {"date": "2023-02-02", "holdingTon": 920.24, "changeTon": 1.74, "gldClose": 177.9}, {"date": "2023-02-03", "holdingTon": 920.24, "changeTon": 0.0, "gldClose": 173.46}, {"date": "2023-02-06", "holdingTon": 917.92, "changeTon": -2.32, "gldClose": 173.82}, {"date": "2023-02-07", "holdingTon": 920.82, "changeTon": 2.9, "gldClose": 173.98}, {"date": "2023-02-08", "holdingTon": 921.1, "changeTon": 0.28, "gldClose": 174.41}, {"date": "2023-02-09", "holdingTon": 920.79, "changeTon": -0.31, "gldClose": 173.03}, {"date": "2023-02-10", "holdingTon": 920.79, "changeTon": 0.0, "gldClose": 173.36}, {"date": "2023-02-13", "holdingTon": 920.79, "changeTon": 0.0, "gldClose": 172.48}, {"date": "2023-02-14", "holdingTon": 920.79, "changeTon": 0.0, "gldClose": 172.61}, {"date": "2023-02-15", "holdingTon": 921.08, "changeTon": 0.29, "gldClose": 170.89}, {"date": "2023-02-16", "holdingTon": 921.08, "changeTon": 0.0, "gldClose": 170.75}, {"date": "2023-02-17", "holdingTon": 919.92, "changeTon": -1.16, "gldClose": 171.26}, {"date": "2023-02-21", "holdingTon": 919.92, "changeTon": 0.0, "gldClose": 170.62}, {"date": "2023-02-22", "holdingTon": 919.06, "changeTon": -0.86, "gldClose": 169.66}, {"date": "2023-02-23", "holdingTon": 917.32, "changeTon": -1.74, "gldClose": 169.57}, {"date": "2023-02-24", "holdingTon": 917.32, "changeTon": 0.0, "gldClose": 168.35}, {"date": "2023-02-27", "holdingTon": 917.61, "changeTon": 0.29, "gldClose": 169.01}, {"date": "2023-02-28", "holdingTon": 915.3, "changeTon": -2.31, "gldClose": 169.78}, {"date": "2023-03-01", "holdingTon": 912.69, "changeTon": -2.61, "gldClose": 170.76}, {"date": "2023-03-02", "holdingTon": 912.69, "changeTon": 0.0, "gldClose": 170.66}, {"date": "2023-03-03", "holdingTon": 912.12, "changeTon": -0.57, "gldClose": 172.49}, {"date": "2023-03-06", "holdingTon": 912.12, "changeTon": 0.0, "gldClose": 171.62}, {"date": "2023-03-07", "holdingTon": 906.62, "changeTon": -5.5, "gldClose": 168.62}, {"date": "2023-03-08", "holdingTon": 906.62, "changeTon": 0.0, "gldClose": 168.54}, {"date": "2023-03-09", "holdingTon": 903.15, "changeTon": -3.47, "gldClose": 170.2}, {"date": "2023-03-10", "holdingTon": 901.42, "changeTon": -1.73, "gldClose": 173.87}, {"date": "2023-03-13", "holdingTon": 913.27, "changeTon": 11.85, "gldClose": 177.86}, {"date": "2023-03-14", "holdingTon": 913.27, "changeTon": 0.0, "gldClose": 176.83}, {"date": "2023-03-15", "holdingTon": 914.72, "changeTon": 1.45, "gldClose": 178.21}, {"date": "2023-03-16", "holdingTon": 914.72, "changeTon": 0.0, "gldClose": 178.57}, {"date": "2023-03-17", "holdingTon": 921.08, "changeTon": 6.36, "gldClose": 183.77}, {"date": "2023-03-20", "holdingTon": 924.55, "changeTon": 3.47, "gldClose": 183.84}, {"date": "2023-03-21", "holdingTon": 923.11, "changeTon": -1.44, "gldClose": 180.37}, {"date": "2023-03-22", "holdingTon": 923.11, "changeTon": 0.0, "gldClose": 183.44}, {"date": "2023-03-23", "holdingTon": 925.42, "changeTon": 2.31, "gldClose": 185.74}, {"date": "2023-03-24", "holdingTon": 923.97, "changeTon": -1.45, "gldClose": 183.65}, {"date": "2023-03-27", "holdingTon": 923.97, "changeTon": 0.0, "gldClose": 181.95}, {"date": "2023-03-28", "holdingTon": 927.73, "changeTon": 3.76, "gldClose": 183.44}, {"date": "2023-03-29", "holdingTon": 929.47, "changeTon": 1.74, "gldClose": 182.53}, {"date": "2023-03-30", "holdingTon": 929.47, "changeTon": 0.0, "gldClose": 184.18}, {"date": "2023-03-31", "holdingTon": 928.02, "changeTon": -1.45, "gldClose": 183.22}, {"date": "2023-04-03", "holdingTon": 930.04, "changeTon": 2.02, "gldClose": 184.54}, {"date": "2023-04-04", "holdingTon": 930.04, "changeTon": 0.0, "gldClose": 187.98}, {"date": "2023-04-05", "holdingTon": 930.91, "changeTon": 0.87, "gldClose": 187.83}, {"date": "2023-04-06", "holdingTon": 930.91, "changeTon": 0.0, "gldClose": 186.49}, {"date": "2023-04-10", "holdingTon": 933.22, "changeTon": 2.31, "gldClose": 185.11}, {"date": "2023-04-11", "holdingTon": 932.93, "changeTon": -0.29, "gldClose": 186.28}, {"date": "2023-04-12", "holdingTon": 934.08, "changeTon": 1.15, "gldClose": 187.19}, {"date": "2023-04-13", "holdingTon": 930.61, "changeTon": -3.47, "gldClose": 189.72}, {"date": "2023-04-14", "holdingTon": 927.72, "changeTon": -2.89, "gldClose": 186.36}, {"date": "2023-04-17", "holdingTon": 925.7, "changeTon": -2.02, "gldClose": 185.53}, {"date": "2023-04-18", "holdingTon": 924.25, "changeTon": -1.45, "gldClose": 186.25}, {"date": "2023-04-19", "holdingTon": 926.57, "changeTon": 2.32, "gldClose": 185.36}, {"date": "2023-04-20", "holdingTon": 926.57, "changeTon": 0.0, "gldClose": 186.09}, {"date": "2023-04-21", "holdingTon": 923.68, "changeTon": -2.89, "gldClose": 184.25}, {"date": "2023-04-24", "holdingTon": 927.43, "changeTon": 3.75, "gldClose": 184.81}, {"date": "2023-04-25", "holdingTon": 930.04, "changeTon": 2.61, "gldClose": 185.75}, {"date": "2023-04-26", "holdingTon": 930.04, "changeTon": 0.0, "gldClose": 184.74}, {"date": "2023-04-27", "holdingTon": 926.28, "changeTon": -3.76, "gldClose": 184.75}, {"date": "2023-04-28", "holdingTon": 926.28, "changeTon": 0.0, "gldClose": 184.8}, {"date": "2023-05-01", "holdingTon": 924.83, "changeTon": -1.45, "gldClose": 183.97}, {"date": "2023-05-02", "holdingTon": 928.3, "changeTon": 3.47, "gldClose": 187.52}, {"date": "2023-05-03", "holdingTon": 928.3, "changeTon": 0.0, "gldClose": 189.11}, {"date": "2023-05-04", "holdingTon": 930.03, "changeTon": 1.73, "gldClose": 190.44}, {"date": "2023-05-05", "holdingTon": 931.77, "changeTon": 1.74, "gldClose": 187.46}, {"date": "2023-05-08", "holdingTon": 937.55, "changeTon": 5.78, "gldClose": 187.69}, {"date": "2023-05-09", "holdingTon": 934.95, "changeTon": -2.6, "gldClose": 189.02}, {"date": "2023-05-10", "holdingTon": 938.99, "changeTon": 4.04, "gldClose": 188.75}, {"date": "2023-05-11", "holdingTon": 937.84, "changeTon": -1.15, "gldClose": 187.13}, {"date": "2023-05-12", "holdingTon": 937.54, "changeTon": -0.3, "gldClose": 186.81}, {"date": "2023-05-15", "holdingTon": 934.07, "changeTon": -3.47, "gldClose": 187.21}, {"date": "2023-05-16", "holdingTon": 934.93, "changeTon": 0.86, "gldClose": 184.87}, {"date": "2023-05-17", "holdingTon": 936.96, "changeTon": 2.03, "gldClose": 184.23}, {"date": "2023-05-18", "holdingTon": 936.96, "changeTon": 0.0, "gldClose": 181.84}, {"date": "2023-05-19", "holdingTon": 942.74, "changeTon": 5.78, "gldClose": 183.64}, {"date": "2023-05-22", "holdingTon": 943.89, "changeTon": 1.15, "gldClose": 183.21}, {"date": "2023-05-23", "holdingTon": 941.29, "changeTon": -2.6, "gldClose": 183.43}, {"date": "2023-05-24", "holdingTon": 941.29, "changeTon": 0.0, "gldClose": 181.95}, {"date": "2023-05-25", "holdingTon": 941.29, "changeTon": 0.0, "gldClose": 180.2}, {"date": "2023-05-26", "holdingTon": 941.29, "changeTon": 0.0, "gldClose": 180.92}, {"date": "2023-05-30", "holdingTon": 939.56, "changeTon": -1.73, "gldClose": 182.04}, {"date": "2023-05-31", "holdingTon": 939.56, "changeTon": 0.0, "gldClose": 182.32}, {"date": "2023-06-01", "holdingTon": 938.11, "changeTon": -1.45, "gldClose": 183.76}, {"date": "2023-06-02", "holdingTon": 938.11, "changeTon": 0.0, "gldClose": 181.05}, {"date": "2023-06-05", "holdingTon": 939.56, "changeTon": 1.45, "gldClose": 182.14}, {"date": "2023-06-06", "holdingTon": 938.11, "changeTon": -1.45, "gldClose": 182.34}, {"date": "2023-06-07", "holdingTon": 934.65, "changeTon": -3.46, "gldClose": 180.15}, {"date": "2023-06-08", "holdingTon": 934.65, "changeTon": 0.0, "gldClose": 182.53}, {"date": "2023-06-09", "holdingTon": 931.76, "changeTon": -2.89, "gldClose": 182.04}, {"date": "2023-06-12", "holdingTon": 931.43, "changeTon": -0.33, "gldClose": 181.88}, {"date": "2023-06-13", "holdingTon": 931.43, "changeTon": 0.0, "gldClose": 180.54}, {"date": "2023-06-14", "holdingTon": 929.7, "changeTon": -1.73, "gldClose": 180.64}, {"date": "2023-06-15", "holdingTon": 929.7, "changeTon": 0.0, "gldClose": 181.91}, {"date": "2023-06-16", "holdingTon": 934.03, "changeTon": 4.33, "gldClose": 181.63}, {"date": "2023-06-20", "holdingTon": 934.03, "changeTon": 0.0, "gldClose": 179.75}, {"date": "2023-06-21", "holdingTon": 932.3, "changeTon": -1.73, "gldClose": 179.49}, {"date": "2023-06-22", "holdingTon": 929.7, "changeTon": -2.6, "gldClose": 177.71}, {"date": "2023-06-23", "holdingTon": 927.1, "changeTon": -2.6, "gldClose": 178.2}, {"date": "2023-06-26", "holdingTon": 925.66, "changeTon": -1.44, "gldClose": 178.51}, {"date": "2023-06-27", "holdingTon": 925.66, "changeTon": 0.0, "gldClose": 177.69}, {"date": "2023-06-28", "holdingTon": 926.81, "changeTon": 1.15, "gldClose": 177.28}, {"date": "2023-06-29", "holdingTon": 924.5, "changeTon": -2.31, "gldClose": 177.09}, {"date": "2023-06-30", "holdingTon": 921.9, "changeTon": -2.6, "gldClose": 178.27}, {"date": "2023-07-03", "holdingTon": 921.9, "changeTon": 0.0, "gldClose": 178.47}, {"date": "2023-07-05", "holdingTon": 917.86, "changeTon": -4.04, "gldClose": 177.84}, {"date": "2023-07-06", "holdingTon": 917.86, "changeTon": 0.0, "gldClose": 177.31}, {"date": "2023-07-07", "holdingTon": 915.26, "changeTon": -2.6, "gldClose": 178.64}, {"date": "2023-07-10", "holdingTon": 915.26, "changeTon": 0.0, "gldClose": 178.78}, {"date": "2023-07-11", "holdingTon": 914.95, "changeTon": -0.31, "gldClose": 179.45}, {"date": "2023-07-12", "holdingTon": 914.66, "changeTon": -0.29, "gldClose": 181.88}, {"date": "2023-07-13", "holdingTon": 914.66, "changeTon": 0.0, "gldClose": 182.01}, {"date": "2023-07-14", "holdingTon": 914.66, "changeTon": 0.0, "gldClose": 181.43}, {"date": "2023-07-17", "holdingTon": 912.93, "changeTon": -1.73, "gldClose": 181.56}, {"date": "2023-07-18", "holdingTon": 912.07, "changeTon": -0.86, "gldClose": 183.64}, {"date": "2023-07-19", "holdingTon": 913.8, "changeTon": 1.73, "gldClose": 183.67}, {"date": "2023-07-20", "holdingTon": 913.8, "changeTon": 0.0, "gldClose": 182.74}, {"date": "2023-07-21", "holdingTon": 919.0, "changeTon": 5.2, "gldClose": 182.18}, {"date": "2023-07-24", "holdingTon": 919.0, "changeTon": 0.0, "gldClose": 181.4}, {"date": "2023-07-25", "holdingTon": 919.0, "changeTon": 0.0, "gldClose": 182.41}, {"date": "2023-07-26", "holdingTon": 917.26, "changeTon": -1.74, "gldClose": 183.3}, {"date": "2023-07-27", "holdingTon": 915.82, "changeTon": -1.44, "gldClose": 180.42}, {"date": "2023-07-28", "holdingTon": 912.93, "changeTon": -2.89, "gldClose": 181.86}, {"date": "2023-07-31", "holdingTon": 912.93, "changeTon": 0.0, "gldClose": 182.35}, {"date": "2023-08-01", "holdingTon": 909.18, "changeTon": -3.75, "gldClose": 180.46}, {"date": "2023-08-02", "holdingTon": 909.18, "changeTon": 0.0, "gldClose": 179.6}, {"date": "2023-08-03", "holdingTon": 906.0, "changeTon": -3.18, "gldClose": 179.54}, {"date": "2023-08-04", "holdingTon": 906.0, "changeTon": 0.0, "gldClose": 180.19}, {"date": "2023-08-07", "holdingTon": 903.69, "changeTon": -2.31, "gldClose": 179.78}, {"date": "2023-08-08", "holdingTon": 903.69, "changeTon": 0.0, "gldClose": 178.64}, {"date": "2023-08-09", "holdingTon": 903.38, "changeTon": -0.31, "gldClose": 177.79}, {"date": "2023-08-10", "holdingTon": 903.38, "changeTon": 0.0, "gldClose": 177.6}, {"date": "2023-08-11", "holdingTon": 899.63, "changeTon": -3.75, "gldClose": 177.6}, {"date": "2023-08-14", "holdingTon": 895.87, "changeTon": -3.76, "gldClose": 177.06}, {"date": "2023-08-15", "holdingTon": 894.43, "changeTon": -1.44, "gldClose": 176.59}, {"date": "2023-08-16", "holdingTon": 894.43, "changeTon": 0.0, "gldClose": 175.57}, {"date": "2023-08-17", "holdingTon": 887.5, "changeTon": -6.93, "gldClose": 175.3}, {"date": "2023-08-18", "holdingTon": 890.1, "changeTon": 2.6, "gldClose": 175.33}, {"date": "2023-08-21", "holdingTon": 889.23, "changeTon": -0.87, "gldClose": 175.81}, {"date": "2023-08-22", "holdingTon": 884.9, "changeTon": -4.33, "gldClose": 176.1}, {"date": "2023-08-23", "holdingTon": 884.9, "changeTon": 0.0, "gldClose": 177.89}, {"date": "2023-08-24", "holdingTon": 884.04, "changeTon": -0.86, "gldClose": 177.85}, {"date": "2023-08-25", "holdingTon": 884.04, "changeTon": 0.0, "gldClose": 177.62}, {"date": "2023-08-28", "holdingTon": 886.64, "changeTon": 2.6, "gldClose": 178.13}, {"date": "2023-08-29", "holdingTon": 889.23, "changeTon": 2.59, "gldClose": 179.87}, {"date": "2023-08-30", "holdingTon": 890.1, "changeTon": 0.87, "gldClose": 180.32}, {"date": "2023-08-31", "holdingTon": 890.1, "changeTon": 0.0, "gldClose": 180.02}, {"date": "2023-09-01", "holdingTon": 890.97, "changeTon": 0.87, "gldClose": 180.11}, {"date": "2023-09-05", "holdingTon": 889.81, "changeTon": -1.16, "gldClose": 178.64}, {"date": "2023-09-06", "holdingTon": 886.64, "changeTon": -3.17, "gldClose": 177.83}, {"date": "2023-09-07", "holdingTon": 886.64, "changeTon": 0.0, "gldClose": 178.02}, {"date": "2023-09-08", "holdingTon": 886.64, "changeTon": 0.0, "gldClose": 178.08}, {"date": "2023-09-11", "holdingTon": 884.89, "changeTon": -1.75, "gldClose": 178.41}, {"date": "2023-09-12", "holdingTon": 884.89, "changeTon": 0.0, "gldClose": 177.49}, {"date": "2023-09-13", "holdingTon": 882.0, "changeTon": -2.89, "gldClose": 177.08}, {"date": "2023-09-14", "holdingTon": 879.7, "changeTon": -2.3, "gldClose": 177.17}, {"date": "2023-09-15", "holdingTon": 880.27, "changeTon": 0.57, "gldClose": 178.34}, {"date": "2023-09-18", "holdingTon": 880.27, "changeTon": 0.0, "gldClose": 179.39}, {"date": "2023-09-19", "holdingTon": 878.83, "changeTon": -1.44, "gldClose": 179.22}, {"date": "2023-09-20", "holdingTon": 878.25, "changeTon": -0.58, "gldClose": 179.35}, {"date": "2023-09-21", "holdingTon": 878.83, "changeTon": 0.58, "gldClose": 178.05}, {"date": "2023-09-22", "holdingTon": 877.39, "changeTon": -1.44, "gldClose": 178.62}, {"date": "2023-09-25", "holdingTon": 876.52, "changeTon": -0.87, "gldClose": 177.7}, {"date": "2023-09-26", "holdingTon": 872.77, "changeTon": -3.75, "gldClose": 176.28}, {"date": "2023-09-27", "holdingTon": 873.64, "changeTon": 0.87, "gldClose": 174.1}, {"date": "2023-09-28", "holdingTon": 873.64, "changeTon": 0.0, "gldClose": 173.23}, {"date": "2023-09-29", "holdingTon": 873.64, "changeTon": 0.0, "gldClose": 171.45}, {"date": "2023-10-02", "holdingTon": 875.08, "changeTon": 1.44, "gldClose": 169.65}, {"date": "2023-10-03", "holdingTon": 873.35, "changeTon": -1.73, "gldClose": 169.16}, {"date": "2023-10-04", "holdingTon": 869.31, "changeTon": -4.04, "gldClose": 169.14}, {"date": "2023-10-05", "holdingTon": 867.58, "changeTon": -1.73, "gldClose": 168.83}, {"date": "2023-10-06", "holdingTon": 865.85, "changeTon": -1.73, "gldClose": 169.7}, {"date": "2023-10-09", "holdingTon": 861.81, "changeTon": -4.04, "gldClose": 172.82}, {"date": "2023-10-10", "holdingTon": 861.51, "changeTon": -0.3, "gldClose": 172.53}, {"date": "2023-10-11", "holdingTon": 862.37, "changeTon": 0.86, "gldClose": 173.79}, {"date": "2023-10-12", "holdingTon": 862.37, "changeTon": 0.0, "gldClose": 173.26}, {"date": "2023-10-13", "holdingTon": 862.37, "changeTon": 0.0, "gldClose": 178.83}, {"date": "2023-10-16", "holdingTon": 855.45, "changeTon": -6.92, "gldClose": 177.96}, {"date": "2023-10-17", "holdingTon": 853.43, "changeTon": -2.02, "gldClose": 178.29}, {"date": "2023-10-18", "holdingTon": 848.24, "changeTon": -5.19, "gldClose": 180.87}, {"date": "2023-10-19", "holdingTon": 848.24, "changeTon": 0.0, "gldClose": 183.09}, {"date": "2023-10-20", "holdingTon": 863.24, "changeTon": 15.0, "gldClose": 183.59}, {"date": "2023-10-23", "holdingTon": 860.07, "changeTon": -3.17, "gldClose": 182.97}, {"date": "2023-10-24", "holdingTon": 860.07, "changeTon": 0.0, "gldClose": 182.95}, {"date": "2023-10-25", "holdingTon": 861.8, "changeTon": 1.73, "gldClose": 183.72}, {"date": "2023-10-26", "holdingTon": 861.8, "changeTon": 0.0, "gldClose": 184.01}, {"date": "2023-10-27", "holdingTon": 861.8, "changeTon": 0.0, "gldClose": 186.15}, {"date": "2023-10-30", "holdingTon": 859.49, "changeTon": -2.31, "gldClose": 185.1}, {"date": "2023-10-31", "holdingTon": 859.49, "changeTon": 0.0, "gldClose": 184.09}, {"date": "2023-11-01", "holdingTon": 861.51, "changeTon": 2.02, "gldClose": 183.51}, {"date": "2023-11-02", "holdingTon": 861.51, "changeTon": 0.0, "gldClose": 184.12}, {"date": "2023-11-03", "holdingTon": 863.24, "changeTon": 1.73, "gldClose": 184.79}, {"date": "2023-11-06", "holdingTon": 867.57, "changeTon": 4.33, "gldClose": 183.35}, {"date": "2023-11-07", "holdingTon": 867.28, "changeTon": -0.29, "gldClose": 182.59}, {"date": "2023-11-08", "holdingTon": 867.28, "changeTon": 0.0, "gldClose": 180.77}, {"date": "2023-11-09", "holdingTon": 867.28, "changeTon": 0.0, "gldClose": 181.49}, {"date": "2023-11-10", "holdingTon": 868.14, "changeTon": 0.86, "gldClose": 179.51}, {"date": "2023-11-13", "holdingTon": 870.45, "changeTon": 2.31, "gldClose": 180.51}, {"date": "2023-11-14", "holdingTon": 870.45, "changeTon": 0.0, "gldClose": 182.12}, {"date": "2023-11-15", "holdingTon": 870.45, "changeTon": 0.0, "gldClose": 181.64}, {"date": "2023-11-16", "holdingTon": 870.45, "changeTon": 0.0, "gldClose": 183.69}, {"date": "2023-11-17", "holdingTon": 883.43, "changeTon": 12.98, "gldClose": 183.67}, {"date": "2023-11-20", "holdingTon": 883.43, "changeTon": 0.0, "gldClose": 183.37}, {"date": "2023-11-21", "holdingTon": 883.43, "changeTon": 0.0, "gldClose": 185.35}, {"date": "2023-11-22", "holdingTon": 882.28, "changeTon": -1.15, "gldClose": 184.56}, {"date": "2023-11-24", "holdingTon": 882.28, "changeTon": 0.0, "gldClose": 185.52}, {"date": "2023-11-27", "holdingTon": 882.28, "changeTon": 0.0, "gldClose": 186.77}, {"date": "2023-11-28", "holdingTon": 880.55, "changeTon": -1.73, "gldClose": 189.26}, {"date": "2023-11-29", "holdingTon": 878.53, "changeTon": -2.02, "gldClose": 189.54}, {"date": "2023-11-30", "holdingTon": 876.51, "changeTon": -2.02, "gldClose": 188.75}, {"date": "2023-12-01", "holdingTon": 878.82, "changeTon": 2.31, "gldClose": 192.01}, {"date": "2023-12-04", "holdingTon": 881.12, "changeTon": 2.3, "gldClose": 187.86}, {"date": "2023-12-05", "holdingTon": 880.83, "changeTon": -0.29, "gldClose": 187.15}, {"date": "2023-12-06", "holdingTon": 880.83, "changeTon": 0.0, "gldClose": 187.84}, {"date": "2023-12-07", "holdingTon": 880.55, "changeTon": -0.28, "gldClose": 188.15}, {"date": "2023-12-08", "holdingTon": 880.55, "changeTon": 0.0, "gldClose": 185.64}, {"date": "2023-12-11", "holdingTon": 878.54, "changeTon": -2.01, "gldClose": 183.59}, {"date": "2023-12-12", "holdingTon": 875.65, "changeTon": -2.89, "gldClose": 183.49}, {"date": "2023-12-13", "holdingTon": 877.96, "changeTon": 2.31, "gldClose": 187.63}, {"date": "2023-12-14", "holdingTon": 877.67, "changeTon": -0.29, "gldClose": 188.73}, {"date": "2023-12-15", "holdingTon": 879.69, "changeTon": 2.02, "gldClose": 187.0}, {"date": "2023-12-18", "holdingTon": 879.69, "changeTon": 0.0, "gldClose": 187.85}, {"date": "2023-12-19", "holdingTon": 877.67, "changeTon": -2.02, "gldClose": 189.13}, {"date": "2023-12-20", "holdingTon": 878.25, "changeTon": 0.58, "gldClose": 188.1}, {"date": "2023-12-21", "holdingTon": 878.25, "changeTon": 0.0, "gldClose": 189.43}, {"date": "2023-12-22", "holdingTon": 878.25, "changeTon": 0.0, "gldClose": 190.27}, {"date": "2023-12-26", "holdingTon": 878.25, "changeTon": 0.0, "gldClose": 191.72}, {"date": "2023-12-27", "holdingTon": 881.71, "changeTon": 3.46, "gldClose": 192.59}, {"date": "2023-12-28", "holdingTon": 880.55, "changeTon": -1.16, "gldClose": 191.47}, {"date": "2023-12-29", "holdingTon": 879.11, "changeTon": -1.44, "gldClose": 191.17}, {"date": "2024-01-02", "holdingTon": 878.54, "changeTon": -0.57, "gldClose": 190.72}, {"date": "2024-01-03", "holdingTon": 874.21, "changeTon": -4.33, "gldClose": 189.13}, {"date": "2024-01-04", "holdingTon": 874.21, "changeTon": 0.0, "gldClose": 189.32}, {"date": "2024-01-05", "holdingTon": 869.6, "changeTon": -4.61, "gldClose": 189.35}, {"date": "2024-01-08", "holdingTon": 869.6, "changeTon": 0.0, "gldClose": 187.87}, {"date": "2024-01-09", "holdingTon": 869.6, "changeTon": 0.0, "gldClose": 187.93}, {"date": "2024-01-10", "holdingTon": 864.99, "changeTon": -4.61, "gldClose": 187.5}, {"date": "2024-01-11", "holdingTon": 863.84, "changeTon": -1.15, "gldClose": 187.87}, {"date": "2024-01-12", "holdingTon": 863.84, "changeTon": 0.0, "gldClose": 189.71}, {"date": "2024-01-16", "holdingTon": 864.4, "changeTon": 0.56, "gldClose": 187.91}, {"date": "2024-01-17", "holdingTon": 862.1, "changeTon": -2.3, "gldClose": 185.84}, {"date": "2024-01-18", "holdingTon": 862.1, "changeTon": 0.0, "gldClose": 187.37}, {"date": "2024-01-19", "holdingTon": 860.95, "changeTon": -1.15, "gldClose": 187.93}, {"date": "2024-01-22", "holdingTon": 858.93, "changeTon": -2.02, "gldClose": 187.22}, {"date": "2024-01-23", "holdingTon": 858.93, "changeTon": 0.0, "gldClose": 187.95}, {"date": "2024-01-24", "holdingTon": 858.93, "changeTon": 0.0, "gldClose": 186.4}, {"date": "2024-01-25", "holdingTon": 858.93, "changeTon": 0.0, "gldClose": 187.14}, {"date": "2024-01-26", "holdingTon": 856.05, "changeTon": -2.88, "gldClose": 187.01}, {"date": "2024-01-29", "holdingTon": 854.89, "changeTon": -1.16, "gldClose": 188.33}, {"date": "2024-01-30", "holdingTon": 852.88, "changeTon": -2.01, "gldClose": 188.59}, {"date": "2024-01-31", "holdingTon": 851.15, "changeTon": -1.73, "gldClose": 188.45}, {"date": "2024-02-01", "holdingTon": 851.72, "changeTon": 0.57, "gldClose": 190.41}, {"date": "2024-02-02", "holdingTon": 851.72, "changeTon": 0.0, "gldClose": 188.61}, {"date": "2024-02-05", "holdingTon": 851.72, "changeTon": 0.0, "gldClose": 187.57}, {"date": "2024-02-06", "holdingTon": 847.69, "changeTon": -4.03, "gldClose": 188.55}, {"date": "2024-02-07", "holdingTon": 842.22, "changeTon": -5.47, "gldClose": 188.5}, {"date": "2024-02-08", "holdingTon": 843.66, "changeTon": 1.44, "gldClose": 188.33}, {"date": "2024-02-09", "holdingTon": 841.92, "changeTon": -1.74, "gldClose": 187.6}, {"date": "2024-02-12", "holdingTon": 841.92, "changeTon": 0.0, "gldClose": 187.11}, {"date": "2024-02-13", "holdingTon": 840.48, "changeTon": -1.44, "gldClose": 184.53}, {"date": "2024-02-14", "holdingTon": 839.04, "changeTon": -1.44, "gldClose": 184.42}, {"date": "2024-02-15", "holdingTon": 837.31, "changeTon": -1.73, "gldClose": 185.66}, {"date": "2024-02-16", "holdingTon": 837.89, "changeTon": 0.58, "gldClose": 186.34}, {"date": "2024-02-20", "holdingTon": 836.16, "changeTon": -1.73, "gldClose": 187.47}, {"date": "2024-02-21", "holdingTon": 829.82, "changeTon": -6.34, "gldClose": 187.48}, {"date": "2024-02-22", "holdingTon": 827.81, "changeTon": -2.01, "gldClose": 187.56}, {"date": "2024-02-23", "holdingTon": 827.81, "changeTon": 0.0, "gldClose": 188.62}, {"date": "2024-02-26", "holdingTon": 827.81, "changeTon": 0.0, "gldClose": 188.2}, {"date": "2024-02-27", "holdingTon": 826.94, "changeTon": -0.87, "gldClose": 188.0}, {"date": "2024-02-28", "holdingTon": 825.5, "changeTon": -1.44, "gldClose": 188.34}, {"date": "2024-02-29", "holdingTon": 822.91, "changeTon": -2.59, "gldClose": 189.31}, {"date": "2024-03-01", "holdingTon": 823.77, "changeTon": 0.86, "gldClose": 192.89}, {"date": "2024-03-04", "holdingTon": 821.47, "changeTon": -2.3, "gldClose": 196.01}, {"date": "2024-03-05", "holdingTon": 821.47, "changeTon": 0.0, "gldClose": 197.19}, {"date": "2024-03-06", "holdingTon": 817.44, "changeTon": -4.03, "gldClose": 198.81}, {"date": "2024-03-07", "holdingTon": 816.57, "changeTon": -0.87, "gldClose": 199.94}, {"date": "2024-03-08", "holdingTon": 815.13, "changeTon": -1.44, "gldClose": 201.63}, {"date": "2024-03-11", "holdingTon": 815.13, "changeTon": 0.0, "gldClose": 202.0}, {"date": "2024-03-12", "holdingTon": 815.13, "changeTon": 0.0, "gldClose": 199.79}, {"date": "2024-03-13", "holdingTon": 816.86, "changeTon": 1.73, "gldClose": 201.19}, {"date": "2024-03-14", "holdingTon": 816.86, "changeTon": 0.0, "gldClose": 200.35}, {"date": "2024-03-15", "holdingTon": 831.84, "changeTon": 14.98, "gldClose": 199.71}, {"date": "2024-03-18", "holdingTon": 833.32, "changeTon": 1.48, "gldClose": 200.03}, {"date": "2024-03-19", "holdingTon": 837.35, "changeTon": 4.03, "gldClose": 199.8}, {"date": "2024-03-20", "holdingTon": 838.5, "changeTon": 1.15, "gldClose": 202.18}, {"date": "2024-03-21", "holdingTon": 838.5, "changeTon": 0.0, "gldClose": 201.97}, {"date": "2024-03-22", "holdingTon": 835.33, "changeTon": -3.17, "gldClose": 200.35}, {"date": "2024-03-25", "holdingTon": 835.33, "changeTon": 0.0, "gldClose": 200.99}, {"date": "2024-03-26", "holdingTon": 830.15, "changeTon": -5.18, "gldClose": 201.64}, {"date": "2024-03-27", "holdingTon": 830.15, "changeTon": 0.0, "gldClose": 203.1}, {"date": "2024-03-28", "holdingTon": 830.15, "changeTon": 0.0, "gldClose": 205.72}, {"date": "2024-04-01", "holdingTon": 826.98, "changeTon": -3.17, "gldClose": 207.82}, {"date": "2024-04-02", "holdingTon": 829.0, "changeTon": 2.02, "gldClose": 210.89}, {"date": "2024-04-03", "holdingTon": 830.72, "changeTon": 1.72, "gldClose": 212.74}, {"date": "2024-04-04", "holdingTon": 832.45, "changeTon": 1.73, "gldClose": 211.52}, {"date": "2024-04-05", "holdingTon": 826.41, "changeTon": -6.04, "gldClose": 215.14}, {"date": "2024-04-08", "holdingTon": 827.85, "changeTon": 1.44, "gldClose": 216.48}, {"date": "2024-04-09", "holdingTon": 828.71, "changeTon": 0.86, "gldClose": 217.67}, {"date": "2024-04-10", "holdingTon": 828.45, "changeTon": -0.26, "gldClose": 215.61}, {"date": "2024-04-11", "holdingTon": 830.75, "changeTon": 2.3, "gldClose": 219.8}, {"date": "2024-04-12", "holdingTon": 826.72, "changeTon": -4.03, "gldClose": 216.89}, {"date": "2024-04-15", "holdingTon": 828.45, "changeTon": 1.73, "gldClose": 220.95}, {"date": "2024-04-16", "holdingTon": 830.18, "changeTon": 1.73, "gldClose": 221.22}, {"date": "2024-04-17", "holdingTon": 827.59, "changeTon": -2.59, "gldClose": 219.59}, {"date": "2024-04-18", "holdingTon": 827.59, "changeTon": 0.0, "gldClose": 220.34}, {"date": "2024-04-19", "holdingTon": 831.9, "changeTon": 4.31, "gldClose": 221.03}, {"date": "2024-04-22", "holdingTon": 831.9, "changeTon": 0.0, "gldClose": 215.57}, {"date": "2024-04-23", "holdingTon": 833.63, "changeTon": 1.73, "gldClose": 215.04}, {"date": "2024-04-24", "holdingTon": 833.63, "changeTon": 0.0, "gldClose": 214.64}, {"date": "2024-04-25", "holdingTon": 834.78, "changeTon": 1.15, "gldClose": 215.92}, {"date": "2024-04-26", "holdingTon": 832.19, "changeTon": -2.59, "gldClose": 216.62}, {"date": "2024-04-29", "holdingTon": 832.19, "changeTon": 0.0, "gldClose": 216.18}, {"date": "2024-04-30", "holdingTon": 832.19, "changeTon": 0.0, "gldClose": 211.87}, {"date": "2024-05-01", "holdingTon": 831.04, "changeTon": -1.15, "gldClose": 213.79}, {"date": "2024-05-02", "holdingTon": 829.6, "changeTon": -1.44, "gldClose": 213.13}, {"date": "2024-05-03", "holdingTon": 830.47, "changeTon": 0.87, "gldClose": 212.96}, {"date": "2024-05-06", "holdingTon": 832.19, "changeTon": 1.72, "gldClose": 215.2}, {"date": "2024-05-07", "holdingTon": 830.47, "changeTon": -1.72, "gldClose": 214.21}, {"date": "2024-05-08", "holdingTon": 830.47, "changeTon": 0.0, "gldClose": 213.58}, {"date": "2024-05-09", "holdingTon": 830.47, "changeTon": 0.0, "gldClose": 216.95}, {"date": "2024-05-10", "holdingTon": 831.92, "changeTon": 1.45, "gldClose": 218.71}, {"date": "2024-05-13", "holdingTon": 831.92, "changeTon": 0.0, "gldClose": 216.26}, {"date": "2024-05-14", "holdingTon": 831.92, "changeTon": 0.0, "gldClose": 218.09}, {"date": "2024-05-15", "holdingTon": 833.36, "changeTon": 1.44, "gldClose": 220.89}, {"date": "2024-05-16", "holdingTon": 833.36, "changeTon": 0.0, "gldClose": 220.03}, {"date": "2024-05-17", "holdingTon": 838.54, "changeTon": 5.18, "gldClose": 223.66}, {"date": "2024-05-20", "holdingTon": 838.54, "changeTon": 0.0, "gldClose": 224.56}, {"date": "2024-05-21", "holdingTon": 838.54, "changeTon": 0.0, "gldClose": 224.23}, {"date": "2024-05-22", "holdingTon": 838.54, "changeTon": 0.0, "gldClose": 220.11}, {"date": "2024-05-23", "holdingTon": 833.36, "changeTon": -5.18, "gldClose": 215.72}, {"date": "2024-05-24", "holdingTon": 832.21, "changeTon": -1.15, "gldClose": 215.92}, {"date": "2024-05-28", "holdingTon": 832.21, "changeTon": 0.0, "gldClose": 218.19}, {"date": "2024-05-29", "holdingTon": 832.21, "changeTon": 0.0, "gldClose": 216.16}, {"date": "2024-05-30", "holdingTon": 832.21, "changeTon": 0.0, "gldClose": 216.57}, {"date": "2024-05-31", "holdingTon": 832.21, "changeTon": 0.0, "gldClose": 215.3}, {"date": "2024-06-03", "holdingTon": 832.21, "changeTon": 0.0, "gldClose": 217.22}, {"date": "2024-06-04", "holdingTon": 832.21, "changeTon": 0.0, "gldClose": 215.27}, {"date": "2024-06-05", "holdingTon": 833.65, "changeTon": 1.44, "gldClose": 217.82}, {"date": "2024-06-06", "holdingTon": 837.1, "changeTon": 3.45, "gldClose": 219.43}, {"date": "2024-06-07", "holdingTon": 835.67, "changeTon": -1.43, "gldClose": 211.6}, {"date": "2024-06-10", "holdingTon": 835.67, "changeTon": 0.0, "gldClose": 213.54}, {"date": "2024-06-11", "holdingTon": 830.77, "changeTon": -4.9, "gldClose": 214.15}, {"date": "2024-06-12", "holdingTon": 830.77, "changeTon": 0.0, "gldClose": 214.72}, {"date": "2024-06-13", "holdingTon": 829.34, "changeTon": -1.43, "gldClose": 212.97}, {"date": "2024-06-14", "holdingTon": 825.31, "changeTon": -4.03, "gldClose": 215.73}, {"date": "2024-06-17", "holdingTon": 825.31, "changeTon": 0.0, "gldClose": 214.61}, {"date": "2024-06-18", "holdingTon": 825.31, "changeTon": 0.0, "gldClose": 215.47}, {"date": "2024-06-20", "holdingTon": 833.65, "changeTon": 8.34, "gldClose": 218.16}, {"date": "2024-06-21", "holdingTon": 831.93, "changeTon": -1.72, "gldClose": 214.78}, {"date": "2024-06-24", "holdingTon": 829.05, "changeTon": -2.88, "gldClose": 215.63}, {"date": "2024-06-25", "holdingTon": 829.05, "changeTon": 0.0, "gldClose": 214.56}, {"date": "2024-06-26", "holdingTon": 829.05, "changeTon": 0.0, "gldClose": 212.58}, {"date": "2024-06-27", "holdingTon": 829.05, "changeTon": 0.0, "gldClose": 214.99}, {"date": "2024-06-28", "holdingTon": 829.05, "changeTon": 0.0, "gldClose": 215.01}, {"date": "2024-07-01", "holdingTon": 827.61, "changeTon": -1.44, "gldClose": 215.57}, {"date": "2024-07-02", "holdingTon": 833.37, "changeTon": 5.76, "gldClose": 215.56}, {"date": "2024-07-03", "holdingTon": 834.8, "changeTon": 1.43, "gldClose": 217.99}, {"date": "2024-07-05", "holdingTon": 834.8, "changeTon": 0.0, "gldClose": 220.93}, {"date": "2024-07-08", "holdingTon": 834.8, "changeTon": 0.0, "gldClose": 218.19}, {"date": "2024-07-09", "holdingTon": 833.37, "changeTon": -1.43, "gldClose": 218.56}, {"date": "2024-07-10", "holdingTon": 833.37, "changeTon": 0.0, "gldClose": 219.36}, {"date": "2024-07-11", "holdingTon": 835.09, "changeTon": 1.72, "gldClose": 223.25}, {"date": "2024-07-12", "holdingTon": 835.09, "changeTon": 0.0, "gldClose": 223.11}, {"date": "2024-07-15", "holdingTon": 836.53, "changeTon": 1.44, "gldClose": 223.83}, {"date": "2024-07-16", "holdingTon": 842.02, "changeTon": 5.49, "gldClose": 228.29}, {"date": "2024-07-17", "holdingTon": 842.02, "changeTon": 0.0, "gldClose": 227.23}, {"date": "2024-07-18", "holdingTon": 840.01, "changeTon": -2.01, "gldClose": 225.78}, {"date": "2024-07-19", "holdingTon": 840.01, "changeTon": 0.0, "gldClose": 221.73}, {"date": "2024-07-22", "holdingTon": 840.01, "changeTon": 0.0, "gldClose": 221.8}, {"date": "2024-07-23", "holdingTon": 841.74, "changeTon": 1.73, "gldClose": 222.58}, {"date": "2024-07-24", "holdingTon": 841.74, "changeTon": 0.0, "gldClose": 221.8}, {"date": "2024-07-25", "holdingTon": 845.19, "changeTon": 3.45, "gldClose": 218.33}, {"date": "2024-07-26", "holdingTon": 843.17, "changeTon": -2.02, "gldClose": 220.63}, {"date": "2024-07-29", "holdingTon": 843.17, "changeTon": 0.0, "gldClose": 220.32}, {"date": "2024-07-30", "holdingTon": 843.17, "changeTon": 0.0, "gldClose": 222.52}, {"date": "2024-07-31", "holdingTon": 846.05, "changeTon": 2.88, "gldClose": 226.55}, {"date": "2024-08-01", "holdingTon": 845.47, "changeTon": -0.58, "gldClose": 225.77}, {"date": "2024-08-02", "holdingTon": 845.47, "changeTon": 0.0, "gldClose": 225.34}, {"date": "2024-08-05", "holdingTon": 844.9, "changeTon": -0.57, "gldClose": 222.48}, {"date": "2024-08-06", "holdingTon": 848.06, "changeTon": 3.16, "gldClose": 220.7}, {"date": "2024-08-07", "holdingTon": 844.04, "changeTon": -4.02, "gldClose": 220.55}, {"date": "2024-08-08", "holdingTon": 846.91, "changeTon": 2.87, "gldClose": 224.01}, {"date": "2024-08-09", "holdingTon": 846.91, "changeTon": 0.0, "gldClose": 224.56}, {"date": "2024-08-12", "holdingTon": 849.79, "changeTon": 2.88, "gldClose": 228.41}, {"date": "2024-08-13", "holdingTon": 845.76, "changeTon": -4.03, "gldClose": 228.06}, {"date": "2024-08-14", "holdingTon": 845.76, "changeTon": 0.0, "gldClose": 226.2}, {"date": "2024-08-15", "holdingTon": 847.78, "changeTon": 2.02, "gldClose": 226.91}, {"date": "2024-08-16", "holdingTon": 854.97, "changeTon": 7.19, "gldClose": 231.99}, {"date": "2024-08-19", "holdingTon": 859.0, "changeTon": 4.03, "gldClose": 231.61}, {"date": "2024-08-20", "holdingTon": 857.27, "changeTon": -1.73, "gldClose": 232.46}, {"date": "2024-08-21", "holdingTon": 856.7, "changeTon": -0.57, "gldClose": 232.15}, {"date": "2024-08-22", "holdingTon": 857.85, "changeTon": 1.15, "gldClose": 229.37}, {"date": "2024-08-23", "holdingTon": 856.12, "changeTon": -1.73, "gldClose": 232.02}, {"date": "2024-08-26", "holdingTon": 856.12, "changeTon": 0.0, "gldClose": 232.76}, {"date": "2024-08-27", "holdingTon": 856.12, "changeTon": 0.0, "gldClose": 233.39}, {"date": "2024-08-28", "holdingTon": 856.12, "changeTon": 0.0, "gldClose": 231.75}, {"date": "2024-08-29", "holdingTon": 857.27, "changeTon": 1.15, "gldClose": 232.95}, {"date": "2024-08-30", "holdingTon": 862.74, "changeTon": 5.47, "gldClose": 231.29}, {"date": "2024-09-03", "holdingTon": 862.74, "changeTon": 0.0, "gldClose": 230.29}, {"date": "2024-09-04", "holdingTon": 862.74, "changeTon": 0.0, "gldClose": 230.43}, {"date": "2024-09-05", "holdingTon": 862.74, "changeTon": 0.0, "gldClose": 232.35}, {"date": "2024-09-06", "holdingTon": 862.74, "changeTon": 0.0, "gldClose": 230.63}, {"date": "2024-09-09", "holdingTon": 862.74, "changeTon": 0.0, "gldClose": 231.6}, {"date": "2024-09-10", "holdingTon": 864.46, "changeTon": 1.72, "gldClose": 232.62}, {"date": "2024-09-11", "holdingTon": 866.18, "changeTon": 1.72, "gldClose": 232.25}, {"date": "2024-09-12", "holdingTon": 870.78, "changeTon": 4.6, "gldClose": 236.33}, {"date": "2024-09-13", "holdingTon": 870.51, "changeTon": -0.27, "gldClose": 238.68}, {"date": "2024-09-16", "holdingTon": 872.23, "changeTon": 1.72, "gldClose": 238.66}, {"date": "2024-09-17", "holdingTon": 872.23, "changeTon": 0.0, "gldClose": 237.34}, {"date": "2024-09-18", "holdingTon": 872.23, "changeTon": 0.0, "gldClose": 235.51}, {"date": "2024-09-19", "holdingTon": 873.96, "changeTon": 1.73, "gldClose": 239.17}, {"date": "2024-09-20", "holdingTon": 875.39, "changeTon": 1.43, "gldClose": 242.21}, {"date": "2024-09-23", "holdingTon": 875.39, "changeTon": 0.0, "gldClose": 242.68}, {"date": "2024-09-24", "holdingTon": 877.12, "changeTon": 1.73, "gldClose": 246.07}, {"date": "2024-09-25", "holdingTon": 877.12, "changeTon": 0.0, "gldClose": 245.73}, {"date": "2024-09-26", "holdingTon": 877.12, "changeTon": 0.0, "gldClose": 246.98}, {"date": "2024-09-27", "holdingTon": 871.94, "changeTon": -5.18, "gldClose": 245.02}, {"date": "2024-09-30", "holdingTon": 871.94, "changeTon": 0.0, "gldClose": 243.06}, {"date": "2024-10-01", "holdingTon": 874.82, "changeTon": 2.88, "gldClose": 245.61}, {"date": "2024-10-02", "holdingTon": 874.82, "changeTon": 0.0, "gldClose": 245.66}, {"date": "2024-10-03", "holdingTon": 877.4, "changeTon": 2.58, "gldClose": 245.49}, {"date": "2024-10-04", "holdingTon": 876.26, "changeTon": -1.14, "gldClose": 245.0}, {"date": "2024-10-07", "holdingTon": 876.26, "changeTon": 0.0, "gldClose": 244.17}, {"date": "2024-10-08", "holdingTon": 876.26, "changeTon": 0.0, "gldClose": 242.37}, {"date": "2024-10-09", "holdingTon": 876.26, "changeTon": 0.0, "gldClose": 241.05}, {"date": "2024-10-10", "holdingTon": 876.26, "changeTon": 0.0, "gldClose": 242.82}, {"date": "2024-10-11", "holdingTon": 877.98, "changeTon": 1.72, "gldClose": 245.47}, {"date": "2024-10-14", "holdingTon": 880.57, "changeTon": 2.59, "gldClose": 245.07}, {"date": "2024-10-15", "holdingTon": 884.59, "changeTon": 4.02, "gldClose": 245.92}, {"date": "2024-10-16", "holdingTon": 884.59, "changeTon": 0.0, "gldClose": 247.15}, {"date": "2024-10-17", "holdingTon": 884.59, "changeTon": 0.0, "gldClose": 248.63}, {"date": "2024-10-18", "holdingTon": 888.63, "changeTon": 4.04, "gldClose": 251.27}, {"date": "2024-10-21", "holdingTon": 891.79, "changeTon": 3.16, "gldClose": 251.22}, {"date": "2024-10-22", "holdingTon": 895.24, "changeTon": 3.45, "gldClose": 253.93}, {"date": "2024-10-23", "holdingTon": 893.8, "changeTon": -1.44, "gldClose": 250.87}, {"date": "2024-10-24", "holdingTon": 893.8, "changeTon": 0.0, "gldClose": 252.8}, {"date": "2024-10-25", "holdingTon": 889.78, "changeTon": -4.02, "gldClose": 253.32}, {"date": "2024-10-28", "holdingTon": 891.5, "changeTon": 1.72, "gldClose": 253.33}, {"date": "2024-10-29", "holdingTon": 889.78, "changeTon": -1.72, "gldClose": 256.09}, {"date": "2024-10-30", "holdingTon": 892.65, "changeTon": 2.87, "gldClose": 257.5}, {"date": "2024-10-31", "holdingTon": 891.79, "changeTon": -0.86, "gldClose": 253.51}, {"date": "2024-11-01", "holdingTon": 888.63, "changeTon": -3.16, "gldClose": 252.47}, {"date": "2024-11-04", "holdingTon": 888.63, "changeTon": 0.0, "gldClose": 252.83}, {"date": "2024-11-05", "holdingTon": 886.9, "changeTon": -1.73, "gldClose": 253.4}, {"date": "2024-11-06", "holdingTon": 883.46, "changeTon": -3.44, "gldClose": 245.7}, {"date": "2024-11-07", "holdingTon": 880.58, "changeTon": -2.88, "gldClose": 249.65}, {"date": "2024-11-08", "holdingTon": 876.85, "changeTon": -3.73, "gldClose": 247.96}, {"date": "2024-11-11", "holdingTon": 871.97, "changeTon": -4.88, "gldClose": 242.14}, {"date": "2024-11-12", "holdingTon": 870.53, "changeTon": -1.44, "gldClose": 240.05}, {"date": "2024-11-13", "holdingTon": 868.52, "changeTon": -2.01, "gldClose": 237.63}, {"date": "2024-11-14", "holdingTon": 867.37, "changeTon": -1.15, "gldClose": 237.01}, {"date": "2024-11-15", "holdingTon": 869.93, "changeTon": 2.56, "gldClose": 236.59}, {"date": "2024-11-18", "holdingTon": 871.65, "changeTon": 1.72, "gldClose": 241.09}, {"date": "2024-11-19", "holdingTon": 872.23, "changeTon": 0.58, "gldClose": 243.25}, {"date": "2024-11-20", "holdingTon": 875.39, "changeTon": 3.16, "gldClose": 244.62}, {"date": "2024-11-21", "holdingTon": 877.97, "changeTon": 2.58, "gldClose": 246.66}, {"date": "2024-11-22", "holdingTon": 877.97, "changeTon": 0.0, "gldClose": 249.84}, {"date": "2024-11-25", "holdingTon": 879.41, "changeTon": 1.44, "gldClose": 242.48}, {"date": "2024-11-26", "holdingTon": 879.41, "changeTon": 0.0, "gldClose": 242.95}, {"date": "2024-11-27", "holdingTon": 878.55, "changeTon": -0.86, "gldClose": 243.49}, {"date": "2024-11-29", "holdingTon": 878.55, "changeTon": 0.0, "gldClose": 245.59}, {"date": "2024-12-02", "holdingTon": 875.96, "changeTon": -2.59, "gldClose": 243.44}, {"date": "2024-12-03", "holdingTon": 873.66, "changeTon": -2.3, "gldClose": 243.93}, {"date": "2024-12-04", "holdingTon": 873.66, "changeTon": 0.0, "gldClose": 244.67}, {"date": "2024-12-05", "holdingTon": 871.94, "changeTon": -1.72, "gldClose": 242.86}, {"date": "2024-12-06", "holdingTon": 871.94, "changeTon": 0.0, "gldClose": 242.95}, {"date": "2024-12-09", "holdingTon": 870.79, "changeTon": -1.15, "gldClose": 245.36}, {"date": "2024-12-10", "holdingTon": 870.79, "changeTon": 0.0, "gldClose": 248.59}, {"date": "2024-12-11", "holdingTon": 873.38, "changeTon": 2.59, "gldClose": 250.96}, {"date": "2024-12-12", "holdingTon": 868.5, "changeTon": -4.88, "gldClose": 247.28}, {"date": "2024-12-13", "holdingTon": 863.9, "changeTon": -4.6, "gldClose": 244.29}, {"date": "2024-12-16", "holdingTon": 864.19, "changeTon": 0.29, "gldClose": 244.88}, {"date": "2024-12-17", "holdingTon": 864.19, "changeTon": 0.0, "gldClose": 243.94}, {"date": "2024-12-18", "holdingTon": 863.9, "changeTon": -0.29, "gldClose": 239.26}, {"date": "2024-12-19", "holdingTon": 860.74, "changeTon": -3.16, "gldClose": 239.6}, {"date": "2024-12-20", "holdingTon": 877.4, "changeTon": 16.66, "gldClose": 242.1}, {"date": "2024-12-23", "holdingTon": 873.95, "changeTon": -3.45, "gldClose": 240.96}, {"date": "2024-12-24", "holdingTon": 873.95, "changeTon": 0.0, "gldClose": 241.44}, {"date": "2024-12-26", "holdingTon": 872.8, "changeTon": -1.15, "gldClose": 243.07}, {"date": "2024-12-27", "holdingTon": 872.52, "changeTon": -0.28, "gldClose": 241.4}, {"date": "2024-12-30", "holdingTon": 872.52, "changeTon": 0.0, "gldClose": 240.63}, {"date": "2024-12-31", "holdingTon": 872.52, "changeTon": 0.0, "gldClose": 242.13}, {"date": "2025-01-02", "holdingTon": 872.52, "changeTon": 0.0, "gldClose": 245.42}, {"date": "2025-01-03", "holdingTon": 871.08, "changeTon": -1.44, "gldClose": 243.49}, {"date": "2025-01-06", "holdingTon": 871.08, "changeTon": 0.0, "gldClose": 243.19}, {"date": "2025-01-07", "holdingTon": 871.08, "changeTon": 0.0, "gldClose": 244.56}, {"date": "2025-01-08", "holdingTon": 871.08, "changeTon": 0.0, "gldClose": 245.86}, {"date": "2025-01-10", "holdingTon": 876.82, "changeTon": 5.74, "gldClose": 248.21}, {"date": "2025-01-13", "holdingTon": 874.52, "changeTon": -2.3, "gldClose": 245.74}, {"date": "2025-01-14", "holdingTon": 872.52, "changeTon": -2.0, "gldClose": 247.03}, {"date": "2025-01-15", "holdingTon": 872.52, "changeTon": 0.0, "gldClose": 248.88}, {"date": "2025-01-16", "holdingTon": 868.78, "changeTon": -3.74, "gldClose": 250.6}, {"date": "2025-01-17", "holdingTon": 879.12, "changeTon": 10.34, "gldClose": 249.27}, {"date": "2025-01-21", "holdingTon": 871.66, "changeTon": -7.46, "gldClose": 253.13}, {"date": "2025-01-22", "holdingTon": 869.36, "changeTon": -2.3, "gldClose": 254.43}, {"date": "2025-01-23", "holdingTon": 864.19, "changeTon": -5.17, "gldClose": 254.07}, {"date": "2025-01-24", "holdingTon": 860.17, "changeTon": -4.02, "gldClose": 255.65}, {"date": "2025-01-27", "holdingTon": 857.02, "changeTon": -3.15, "gldClose": 252.99}, {"date": "2025-01-28", "holdingTon": 861.04, "changeTon": 4.02, "gldClose": 255.18}, {"date": "2025-01-29", "holdingTon": 865.34, "changeTon": 4.3, "gldClose": 254.2}, {"date": "2025-01-30", "holdingTon": 864.19, "changeTon": -1.15, "gldClose": 258.05}, {"date": "2025-01-31", "holdingTon": 864.77, "changeTon": 0.58, "gldClose": 258.56}, {"date": "2025-02-03", "holdingTon": 865.63, "changeTon": 0.86, "gldClose": 259.94}, {"date": "2025-02-04", "holdingTon": 863.05, "changeTon": -2.58, "gldClose": 262.5}, {"date": "2025-02-05", "holdingTon": 864.19, "changeTon": 1.14, "gldClose": 264.13}, {"date": "2025-02-06", "holdingTon": 864.19, "changeTon": 0.0, "gldClose": 263.43}, {"date": "2025-02-07", "holdingTon": 868.5, "changeTon": 4.31, "gldClose": 263.9}, {"date": "2025-02-10", "holdingTon": 871.08, "changeTon": 2.58, "gldClose": 268.37}, {"date": "2025-02-11", "holdingTon": 871.94, "changeTon": 0.86, "gldClose": 267.39}, {"date": "2025-02-12", "holdingTon": 866.5, "changeTon": -5.44, "gldClose": 267.67}, {"date": "2025-02-13", "holdingTon": 864.2, "changeTon": -2.3, "gldClose": 270.31}, {"date": "2025-02-14", "holdingTon": 863.06, "changeTon": -1.14, "gldClose": 266.29}, {"date": "2025-02-18", "holdingTon": 869.94, "changeTon": 6.88, "gldClose": 270.7}, {"date": "2025-02-19", "holdingTon": 877.98, "changeTon": 8.04, "gldClose": 270.85}, {"date": "2025-02-20", "holdingTon": 883.72, "changeTon": 5.74, "gldClose": 270.99}, {"date": "2025-02-21", "holdingTon": 904.38, "changeTon": 20.66, "gldClose": 270.74}, {"date": "2025-02-24", "holdingTon": 907.53, "changeTon": 3.15, "gldClose": 272.21}, {"date": "2025-02-25", "holdingTon": 907.82, "changeTon": 0.29, "gldClose": 268.62}, {"date": "2025-02-26", "holdingTon": 906.96, "changeTon": -0.86, "gldClose": 269.03}, {"date": "2025-02-27", "holdingTon": 906.1, "changeTon": -0.86, "gldClose": 264.93}, {"date": "2025-02-28", "holdingTon": 904.38, "changeTon": -1.72, "gldClose": 263.27}, {"date": "2025-03-03", "holdingTon": 900.93, "changeTon": -3.45, "gldClose": 266.74}, {"date": "2025-03-04", "holdingTon": 901.8, "changeTon": 0.87, "gldClose": 269.06}, {"date": "2025-03-05", "holdingTon": 900.36, "changeTon": -1.44, "gldClose": 269.62}, {"date": "2025-03-06", "holdingTon": 898.64, "changeTon": -1.72, "gldClose": 268.25}, {"date": "2025-03-07", "holdingTon": 894.34, "changeTon": -4.3, "gldClose": 268.39}, {"date": "2025-03-10", "holdingTon": 891.75, "changeTon": -2.59, "gldClose": 266.04}, {"date": "2025-03-11", "holdingTon": 895.2, "changeTon": 3.45, "gldClose": 269.16}, {"date": "2025-03-12", "holdingTon": 898.64, "changeTon": 3.44, "gldClose": 270.33}, {"date": "2025-03-13", "holdingTon": 905.81, "changeTon": 7.17, "gldClose": 275.13}, {"date": "2025-03-14", "holdingTon": 906.41, "changeTon": 0.6, "gldClose": 275.24}, {"date": "2025-03-17", "holdingTon": 907.27, "changeTon": 0.86, "gldClose": 276.73}, {"date": "2025-03-18", "holdingTon": 907.27, "changeTon": 0.0, "gldClose": 279.96}, {"date": "2025-03-19", "holdingTon": 909.28, "changeTon": 2.01, "gldClose": 281.11}, {"date": "2025-03-20", "holdingTon": 910.43, "changeTon": 1.15, "gldClose": 280.75}, {"date": "2025-03-21", "holdingTon": 930.51, "changeTon": 20.08, "gldClose": 278.49}, {"date": "2025-03-24", "holdingTon": 929.07, "changeTon": -1.44, "gldClose": 277.25}, {"date": "2025-03-25", "holdingTon": 929.36, "changeTon": 0.29, "gldClose": 278.47}, {"date": "2025-03-26", "holdingTon": 929.36, "changeTon": 0.0, "gldClose": 278.24}, {"date": "2025-03-27", "holdingTon": 929.65, "changeTon": 0.29, "gldClose": 281.97}, {"date": "2025-03-28", "holdingTon": 931.94, "changeTon": 2.29, "gldClose": 284.06}, {"date": "2025-03-31", "holdingTon": 933.38, "changeTon": 1.44, "gldClose": 288.14}, {"date": "2025-04-01", "holdingTon": 931.37, "changeTon": -2.01, "gldClose": 287.57}, {"date": "2025-04-02", "holdingTon": 931.94, "changeTon": 0.57, "gldClose": 288.16}, {"date": "2025-04-03", "holdingTon": 936.24, "changeTon": 4.3, "gldClose": 286.42}, {"date": "2025-04-04", "holdingTon": 932.8, "changeTon": -3.44, "gldClose": 279.72}, {"date": "2025-04-07", "holdingTon": 926.78, "changeTon": -6.02, "gldClose": 273.71}, {"date": "2025-04-08", "holdingTon": 925.92, "changeTon": -0.86, "gldClose": 275.2}, {"date": "2025-04-09", "holdingTon": 937.09, "changeTon": 11.17, "gldClose": 285.38}, {"date": "2025-04-10", "holdingTon": 949.71, "changeTon": 12.62, "gldClose": 292.35}, {"date": "2025-04-11", "holdingTon": 953.15, "changeTon": 3.44, "gldClose": 297.93}, {"date": "2025-04-14", "holdingTon": 953.15, "changeTon": 0.0, "gldClose": 296.23}, {"date": "2025-04-15", "holdingTon": 953.15, "changeTon": 0.0, "gldClose": 297.78}, {"date": "2025-04-16", "holdingTon": 957.17, "changeTon": 4.02, "gldClose": 307.47}, {"date": "2025-04-17", "holdingTon": 952.29, "changeTon": -4.88, "gldClose": 306.12}, {"date": "2025-04-21", "holdingTon": 959.17, "changeTon": 6.88, "gldClose": 315.59}, {"date": "2025-04-22", "holdingTon": 947.7, "changeTon": -11.47, "gldClose": 311.11}, {"date": "2025-04-23", "holdingTon": 949.14, "changeTon": 1.44, "gldClose": 303.65}, {"date": "2025-04-24", "holdingTon": 948.56, "changeTon": -0.58, "gldClose": 308.07}, {"date": "2025-04-25", "holdingTon": 946.27, "changeTon": -2.29, "gldClose": 304.73}, {"date": "2025-04-28", "holdingTon": 946.27, "changeTon": 0.0, "gldClose": 309.07}, {"date": "2025-04-29", "holdingTon": 947.13, "changeTon": 0.86, "gldClose": 306.06}, {"date": "2025-04-30", "holdingTon": 944.26, "changeTon": -2.87, "gldClose": 303.77}, {"date": "2025-05-01", "holdingTon": 945.41, "changeTon": 1.15, "gldClose": 297.46}, {"date": "2025-05-02", "holdingTon": 944.26, "changeTon": -1.15, "gldClose": 297.98}, {"date": "2025-05-05", "holdingTon": 939.39, "changeTon": -4.87, "gldClose": 306.88}, {"date": "2025-05-06", "holdingTon": 937.95, "changeTon": -1.44, "gldClose": 315.48}, {"date": "2025-05-07", "holdingTon": 937.67, "changeTon": -0.28, "gldClose": 310.75}, {"date": "2025-05-08", "holdingTon": 939.67, "changeTon": 2.0, "gldClose": 304.63}, {"date": "2025-05-09", "holdingTon": 937.94, "changeTon": -1.73, "gldClose": 306.84}, {"date": "2025-05-12", "holdingTon": 939.09, "changeTon": 1.15, "gldClose": 298.19}, {"date": "2025-05-13", "holdingTon": 936.51, "changeTon": -2.58, "gldClose": 299.46}, {"date": "2025-05-14", "holdingTon": 931.92, "changeTon": -4.59, "gldClose": 293.16}, {"date": "2025-05-15", "holdingTon": 927.62, "changeTon": -4.3, "gldClose": 297.84}, {"date": "2025-05-16", "holdingTon": 918.73, "changeTon": -8.89, "gldClose": 294.24}, {"date": "2025-05-19", "holdingTon": 921.03, "changeTon": 2.3, "gldClose": 298.03}, {"date": "2025-05-20", "holdingTon": 921.6, "changeTon": 0.57, "gldClose": 303.58}, {"date": "2025-05-21", "holdingTon": 919.88, "changeTon": -1.72, "gldClose": 305.82}, {"date": "2025-05-22", "holdingTon": 923.89, "changeTon": 4.01, "gldClose": 303.11}, {"date": "2025-05-23", "holdingTon": 922.46, "changeTon": -1.43, "gldClose": 309.75}, {"date": "2025-05-27", "holdingTon": 922.46, "changeTon": 0.0, "gldClose": 304.5}, {"date": "2025-05-28", "holdingTon": 925.61, "changeTon": 3.15, "gldClose": 303.81}, {"date": "2025-05-29", "holdingTon": 930.2, "changeTon": 4.59, "gldClose": 305.61}, {"date": "2025-05-30", "holdingTon": 930.2, "changeTon": 0.0, "gldClose": 303.6}, {"date": "2025-06-02", "holdingTon": 933.07, "changeTon": 2.87, "gldClose": 311.67}, {"date": "2025-06-03", "holdingTon": 935.64, "changeTon": 2.57, "gldClose": 308.91}, {"date": "2025-06-04", "holdingTon": 935.64, "changeTon": 0.0, "gldClose": 310.9}, {"date": "2025-06-05", "holdingTon": 935.64, "changeTon": 0.0, "gldClose": 309.33}, {"date": "2025-06-06", "holdingTon": 934.21, "changeTon": -1.43, "gldClose": 305.18}, {"date": "2025-06-09", "holdingTon": 936.22, "changeTon": 2.01, "gldClose": 306.62}, {"date": "2025-06-10", "holdingTon": 935.91, "changeTon": -0.31, "gldClose": 306.71}, {"date": "2025-06-11", "holdingTon": 934.19, "changeTon": -1.72, "gldClose": 308.37}, {"date": "2025-06-12", "holdingTon": 937.91, "changeTon": 3.72, "gldClose": 312.2}, {"date": "2025-06-13", "holdingTon": 940.49, "changeTon": 2.58, "gldClose": 316.29}, {"date": "2025-06-16", "holdingTon": 941.93, "changeTon": 1.44, "gldClose": 311.78}, {"date": "2025-06-17", "holdingTon": 945.94, "changeTon": 4.01, "gldClose": 311.94}, {"date": "2025-06-18", "holdingTon": 947.37, "changeTon": 1.43, "gldClose": 310.26}, {"date": "2025-06-20", "holdingTon": 950.24, "changeTon": 2.87, "gldClose": 310.13}, {"date": "2025-06-23", "holdingTon": 957.4, "changeTon": 7.16, "gldClose": 311.08}, {"date": "2025-06-24", "holdingTon": 955.68, "changeTon": -1.72, "gldClose": 306.19}, {"date": "2025-06-25", "holdingTon": 953.39, "changeTon": -2.29, "gldClose": 307.12}, {"date": "2025-06-26", "holdingTon": 953.39, "changeTon": 0.0, "gldClose": 306.78}, {"date": "2025-06-27", "holdingTon": 954.82, "changeTon": 1.43, "gldClose": 301.22}, {"date": "2025-06-30", "holdingTon": 952.53, "changeTon": -2.29, "gldClose": 304.83}, {"date": "2025-07-01", "holdingTon": 948.23, "changeTon": -4.3, "gldClose": 307.55}, {"date": "2025-07-02", "holdingTon": 947.66, "changeTon": -0.57, "gldClose": 309.25}, {"date": "2025-07-03", "holdingTon": 947.66, "changeTon": 0.0, "gldClose": 307.14}, {"date": "2025-07-07", "holdingTon": 947.66, "changeTon": 0.0, "gldClose": 307.37}, {"date": "2025-07-08", "holdingTon": 946.51, "changeTon": -1.15, "gldClose": 304.16}, {"date": "2025-07-09", "holdingTon": 947.37, "changeTon": 0.86, "gldClose": 305.52}, {"date": "2025-07-10", "holdingTon": 948.8, "changeTon": 1.43, "gldClose": 306.2}, {"date": "2025-07-11", "holdingTon": 947.64, "changeTon": -1.16, "gldClose": 309.14}, {"date": "2025-07-14", "holdingTon": 947.64, "changeTon": 0.0, "gldClose": 308.01}, {"date": "2025-07-15", "holdingTon": 947.64, "changeTon": 0.0, "gldClose": 306.73}, {"date": "2025-07-16", "holdingTon": 950.79, "changeTon": 3.15, "gldClose": 308.26}, {"date": "2025-07-17", "holdingTon": 948.5, "changeTon": -2.29, "gldClose": 307.59}, {"date": "2025-07-18", "holdingTon": 943.62, "changeTon": -4.88, "gldClose": 308.39}, {"date": "2025-07-21", "holdingTon": 947.06, "changeTon": 3.44, "gldClose": 313.13}, {"date": "2025-07-22", "holdingTon": 954.8, "changeTon": 7.74, "gldClose": 316.1}, {"date": "2025-07-23", "holdingTon": 954.8, "changeTon": 0.0, "gldClose": 312.18}, {"date": "2025-07-24", "holdingTon": 957.09, "changeTon": 2.29, "gldClose": 310.27}, {"date": "2025-07-25", "holdingTon": 957.09, "changeTon": 0.0, "gldClose": 307.4}, {"date": "2025-07-28", "holdingTon": 956.23, "changeTon": -0.86, "gldClose": 305.41}, {"date": "2025-07-29", "holdingTon": 956.23, "changeTon": 0.0, "gldClose": 306.25}, {"date": "2025-07-30", "holdingTon": 955.37, "changeTon": -0.86, "gldClose": 300.96}, {"date": "2025-07-31", "holdingTon": 954.51, "changeTon": -0.86, "gldClose": 302.96}, {"date": "2025-08-01", "holdingTon": 953.08, "changeTon": -1.43, "gldClose": 309.11}, {"date": "2025-08-04", "holdingTon": 954.8, "changeTon": 1.72, "gldClose": 310.91}, {"date": "2025-08-05", "holdingTon": 955.94, "changeTon": 1.14, "gldClose": 311.16}, {"date": "2025-08-06", "holdingTon": 952.79, "changeTon": -3.15, "gldClose": 310.5}, {"date": "2025-08-07", "holdingTon": 959.09, "changeTon": 6.3, "gldClose": 313.12}, {"date": "2025-08-08", "holdingTon": 959.64, "changeTon": 0.55, "gldClose": 313.05}, {"date": "2025-08-11", "holdingTon": 964.22, "changeTon": 4.58, "gldClose": 308.55}, {"date": "2025-08-12", "holdingTon": 964.22, "changeTon": 0.0, "gldClose": 308.27}, {"date": "2025-08-13", "holdingTon": 964.22, "changeTon": 0.0, "gldClose": 309.21}, {"date": "2025-08-14", "holdingTon": 961.35, "changeTon": -2.87, "gldClose": 307.25}, {"date": "2025-08-15", "holdingTon": 965.36, "changeTon": 4.01, "gldClose": 307.43}, {"date": "2025-08-18", "holdingTon": 965.36, "changeTon": 0.0, "gldClose": 306.95}, {"date": "2025-08-19", "holdingTon": 962.21, "changeTon": -3.15, "gldClose": 305.27}, {"date": "2025-08-20", "holdingTon": 958.2, "changeTon": -4.01, "gldClose": 308.36}, {"date": "2025-08-21", "holdingTon": 956.77, "changeTon": -1.43, "gldClose": 307.29}, {"date": "2025-08-22", "holdingTon": 956.77, "changeTon": 0.0, "gldClose": 310.58}, {"date": "2025-08-25", "holdingTon": 958.49, "changeTon": 1.72, "gldClose": 309.83}, {"date": "2025-08-26", "holdingTon": 959.92, "changeTon": 1.43, "gldClose": 312.08}, {"date": "2025-08-27", "holdingTon": 962.5, "changeTon": 2.58, "gldClose": 312.71}, {"date": "2025-08-28", "holdingTon": 967.94, "changeTon": 5.44, "gldClose": 315.03}, {"date": "2025-08-29", "holdingTon": 977.68, "changeTon": 9.74, "gldClose": 318.07}, {"date": "2025-09-02", "holdingTon": 990.56, "changeTon": 12.88, "gldClose": 325.59}, {"date": "2025-09-03", "holdingTon": 984.26, "changeTon": -6.3, "gldClose": 328.14}, {"date": "2025-09-04", "holdingTon": 981.97, "changeTon": -2.29, "gldClose": 326.69}, {"date": "2025-09-05", "holdingTon": 981.97, "changeTon": 0.0, "gldClose": 331.05}, {"date": "2025-09-08", "holdingTon": 979.68, "changeTon": -2.29, "gldClose": 334.82}, {"date": "2025-09-09", "holdingTon": 979.68, "changeTon": 0.0, "gldClose": 334.06}, {"date": "2025-09-10", "holdingTon": 979.95, "changeTon": 0.27, "gldClose": 335.26}, {"date": "2025-09-11", "holdingTon": 977.95, "changeTon": -2.0, "gldClose": 334.76}, {"date": "2025-09-12", "holdingTon": 974.8, "changeTon": -3.15, "gldClose": 335.42}, {"date": "2025-09-15", "holdingTon": 976.8, "changeTon": 2.0, "gldClose": 338.91}, {"date": "2025-09-16", "holdingTon": 979.95, "changeTon": 3.15, "gldClose": 339.59}, {"date": "2025-09-17", "holdingTon": 975.66, "changeTon": -4.29, "gldClose": 336.97}, {"date": "2025-09-18", "holdingTon": 975.66, "changeTon": 0.0, "gldClose": 335.62}, {"date": "2025-09-19", "holdingTon": 994.56, "changeTon": 18.9, "gldClose": 339.18}, {"date": "2025-09-22", "holdingTon": 1000.57, "changeTon": 6.01, "gldClose": 345.05}, {"date": "2025-09-23", "holdingTon": 1000.57, "changeTon": 0.0, "gldClose": 346.46}, {"date": "2025-09-24", "holdingTon": 996.85, "changeTon": -3.72, "gldClose": 343.32}, {"date": "2025-09-25", "holdingTon": 996.85, "changeTon": 0.0, "gldClose": 344.75}, {"date": "2025-09-26", "holdingTon": 1005.72, "changeTon": 8.87, "gldClose": 346.74}, {"date": "2025-09-29", "holdingTon": 1011.73, "changeTon": 6.01, "gldClose": 352.46}, {"date": "2025-09-30", "holdingTon": 1012.88, "changeTon": 1.15, "gldClose": 355.47}, {"date": "2025-10-01", "holdingTon": 1018.89, "changeTon": 6.01, "gldClose": 356.03}, {"date": "2025-10-02", "holdingTon": 1015.74, "changeTon": -3.15, "gldClose": 354.79}, {"date": "2025-10-03", "holdingTon": 1014.88, "changeTon": -0.86, "gldClose": 357.64}, {"date": "2025-10-06", "holdingTon": 1013.16, "changeTon": -1.72, "gldClose": 364.38}, {"date": "2025-10-07", "holdingTon": 1013.15, "changeTon": -0.01, "gldClose": 366.26}, {"date": "2025-10-08", "holdingTon": 1014.58, "changeTon": 1.43, "gldClose": 372.3}, {"date": "2025-10-09", "holdingTon": 1013.44, "changeTon": -1.14, "gldClose": 365.43}, {"date": "2025-10-10", "holdingTon": 1017.16, "changeTon": 3.72, "gldClose": 369.12}, {"date": "2025-10-13", "holdingTon": 1018.88, "changeTon": 1.72, "gldClose": 378.09}, {"date": "2025-10-14", "holdingTon": 1021.45, "changeTon": 2.57, "gldClose": 380.79}, {"date": "2025-10-15", "holdingTon": 1022.6, "changeTon": 1.15, "gldClose": 387.39}, {"date": "2025-10-16", "holdingTon": 1034.62, "changeTon": 12.02, "gldClose": 396.45}, {"date": "2025-10-17", "holdingTon": 1047.21, "changeTon": 12.59, "gldClose": 388.99}, {"date": "2025-10-20", "holdingTon": 1058.66, "changeTon": 11.45, "gldClose": 403.15}, {"date": "2025-10-21", "holdingTon": 1058.66, "changeTon": 0.0, "gldClose": 377.24}, {"date": "2025-10-22", "holdingTon": 1052.37, "changeTon": -6.29, "gldClose": 377.28}, {"date": "2025-10-23", "holdingTon": 1052.37, "changeTon": 0.0, "gldClose": 378.79}, {"date": "2025-10-24", "holdingTon": 1046.93, "changeTon": -5.44, "gldClose": 377.52}, {"date": "2025-10-27", "holdingTon": 1038.92, "changeTon": -8.01, "gldClose": 367.01}, {"date": "2025-10-28", "holdingTon": 1038.92, "changeTon": 0.0, "gldClose": 364.38}, {"date": "2025-10-29", "holdingTon": 1036.05, "changeTon": -2.87, "gldClose": 363.0}, {"date": "2025-10-30", "holdingTon": 1040.35, "changeTon": 4.3, "gldClose": 370.13}, {"date": "2025-10-31", "holdingTon": 1039.2, "changeTon": -1.15, "gldClose": 368.12}, {"date": "2025-11-03", "holdingTon": 1041.78, "changeTon": 2.58, "gldClose": 368.78}, {"date": "2025-11-04", "holdingTon": 1038.63, "changeTon": -3.15, "gldClose": 362.32}, {"date": "2025-11-05", "holdingTon": 1038.63, "changeTon": 0.0, "gldClose": 366.51}, {"date": "2025-11-06", "holdingTon": 1040.35, "changeTon": 1.72, "gldClose": 366.07}, {"date": "2025-11-07", "holdingTon": 1042.06, "changeTon": 1.71, "gldClose": 368.31}, {"date": "2025-11-10", "holdingTon": 1042.06, "changeTon": 0.0, "gldClose": 378.38}, {"date": "2025-11-11", "holdingTon": 1046.36, "changeTon": 4.3, "gldClose": 379.87}, {"date": "2025-11-12", "holdingTon": 1046.64, "changeTon": 0.28, "gldClose": 385.99}, {"date": "2025-11-13", "holdingTon": 1048.93, "changeTon": 2.29, "gldClose": 382.87}, {"date": "2025-11-14", "holdingTon": 1044.0, "changeTon": -4.93, "gldClose": 375.96}, {"date": "2025-11-17", "holdingTon": 1041.43, "changeTon": -2.57, "gldClose": 371.65}, {"date": "2025-11-18", "holdingTon": 1041.43, "changeTon": 0.0, "gldClose": 374.35}, {"date": "2025-11-19", "holdingTon": 1043.72, "changeTon": 2.29, "gldClose": 374.96}, {"date": "2025-11-20", "holdingTon": 1039.43, "changeTon": -4.29, "gldClose": 374.85}, {"date": "2025-11-21", "holdingTon": 1040.57, "changeTon": 1.14, "gldClose": 374.27}, {"date": "2025-11-24", "holdingTon": 1040.86, "changeTon": 0.29, "gldClose": 380.2}, {"date": "2025-11-25", "holdingTon": 1040.86, "changeTon": 0.0, "gldClose": 380.08}, {"date": "2025-11-26", "holdingTon": 1045.43, "changeTon": 4.57, "gldClose": 383.12}, {"date": "2025-11-28", "holdingTon": 1045.43, "changeTon": 0.0, "gldClose": 387.88}, {"date": "2025-12-01", "holdingTon": 1050.01, "changeTon": 4.58, "gldClose": 389.75}, {"date": "2025-12-02", "holdingTon": 1048.29, "changeTon": -1.72, "gldClose": 387.24}, {"date": "2025-12-03", "holdingTon": 1046.58, "changeTon": -1.71, "gldClose": 386.88}, {"date": "2025-12-04", "holdingTon": 1050.58, "changeTon": 4.0, "gldClose": 387.13}, {"date": "2025-12-05", "holdingTon": 1050.25, "changeTon": -0.33, "gldClose": 386.44}, {"date": "2025-12-08", "holdingTon": 1049.11, "changeTon": -1.14, "gldClose": 385.42}, {"date": "2025-12-09", "holdingTon": 1047.97, "changeTon": -1.14, "gldClose": 387.4}, {"date": "2025-12-10", "holdingTon": 1046.82, "changeTon": -1.15, "gldClose": 389.05}, {"date": "2025-12-11", "holdingTon": 1050.83, "changeTon": 4.01, "gldClose": 393.24}, {"date": "2025-12-12", "holdingTon": 1053.11, "changeTon": 2.28, "gldClose": 395.44}, {"date": "2025-12-15", "holdingTon": 1051.68, "changeTon": -1.43, "gldClose": 395.8}, {"date": "2025-12-16", "holdingTon": 1051.68, "changeTon": 0.0, "gldClose": 395.89}, {"date": "2025-12-17", "holdingTon": 1052.54, "changeTon": 0.86, "gldClose": 399.29}, {"date": "2025-12-18", "holdingTon": 1052.54, "changeTon": 0.0, "gldClose": 398.57}, {"date": "2025-12-19", "holdingTon": 1052.54, "changeTon": 0.0, "gldClose": 399.02}, {"date": "2025-12-22", "holdingTon": 1064.56, "changeTon": 12.02, "gldClose": 408.23}, {"date": "2025-12-23", "holdingTon": 1064.56, "changeTon": 0.0, "gldClose": 413.64}, {"date": "2025-12-24", "holdingTon": 1068.27, "changeTon": 3.71, "gldClose": 411.93}, {"date": "2025-12-26", "holdingTon": 1071.13, "changeTon": 2.86, "gldClose": 416.74}, {"date": "2025-12-29", "holdingTon": 1071.99, "changeTon": 0.86, "gldClose": 398.6}, {"date": "2025-12-30", "holdingTon": 1071.99, "changeTon": 0.0, "gldClose": 398.89}, {"date": "2025-12-31", "holdingTon": 1070.56, "changeTon": -1.43, "gldClose": 396.31}, {"date": "2026-01-02", "holdingTon": 1065.13, "changeTon": -5.43, "gldClose": 398.28}, {"date": "2026-01-05", "holdingTon": 1065.13, "changeTon": 0.0, "gldClose": 408.76}, {"date": "2026-01-06", "holdingTon": 1067.13, "changeTon": 2.0, "gldClose": 413.18}, {"date": "2026-01-07", "holdingTon": 1067.13, "changeTon": 0.0, "gldClose": 409.23}, {"date": "2026-01-08", "holdingTon": 1067.13, "changeTon": 0.0, "gldClose": 411.49}, {"date": "2026-01-09", "holdingTon": 1064.56, "changeTon": -2.57, "gldClose": 414.47}, {"date": "2026-01-12", "holdingTon": 1070.8, "changeTon": 6.24, "gldClose": 422.23}, {"date": "2026-01-13", "holdingTon": 1074.23, "changeTon": 3.43, "gldClose": 421.63}, {"date": "2026-01-14", "holdingTon": 1074.23, "changeTon": 0.0, "gldClose": 425.94}, {"date": "2026-01-15", "holdingTon": 1074.8, "changeTon": 0.57, "gldClose": 423.33}, {"date": "2026-01-16", "holdingTon": 1085.67, "changeTon": 10.87, "gldClose": 421.29}, {"date": "2026-01-20", "holdingTon": 1081.66, "changeTon": -4.01, "gldClose": 437.23}, {"date": "2026-01-21", "holdingTon": 1077.66, "changeTon": -4.0, "gldClose": 443.6}, {"date": "2026-01-22", "holdingTon": 1079.66, "changeTon": 2.0, "gldClose": 451.79}, {"date": "2026-01-23", "holdingTon": 1086.53, "changeTon": 6.87, "gldClose": 458.0}, {"date": "2026-01-26", "holdingTon": 1086.53, "changeTon": 0.0, "gldClose": 464.7}, {"date": "2026-01-27", "holdingTon": 1087.38, "changeTon": 0.85, "gldClose": 476.1}, {"date": "2026-01-28", "holdingTon": 1089.96, "changeTon": 2.58, "gldClose": 494.56}, {"date": "2026-01-29", "holdingTon": 1086.53, "changeTon": -3.43, "gldClose": 495.9}, {"date": "2026-01-30", "holdingTon": 1087.1, "changeTon": 0.57, "gldClose": 444.95}, {"date": "2026-02-02", "holdingTon": 1087.1, "changeTon": 0.0, "gldClose": 427.13}, {"date": "2026-02-03", "holdingTon": 1083.38, "changeTon": -3.72, "gldClose": 454.29}, {"date": "2026-02-04", "holdingTon": 1081.95, "changeTon": -1.43, "gldClose": 453.97}, {"date": "2026-02-05", "holdingTon": 1077.95, "changeTon": -4.0, "gldClose": 441.88}, {"date": "2026-02-06", "holdingTon": 1076.23, "changeTon": -1.72, "gldClose": 455.46}, {"date": "2026-02-09", "holdingTon": 1079.66, "changeTon": 3.43, "gldClose": 467.03}, {"date": "2026-02-10", "holdingTon": 1079.32, "changeTon": -0.34, "gldClose": 462.4}, {"date": "2026-02-11", "holdingTon": 1081.32, "changeTon": 2.0, "gldClose": 467.63}, {"date": "2026-02-12", "holdingTon": 1076.18, "changeTon": -5.14, "gldClose": 451.39}, {"date": "2026-02-13", "holdingTon": 1077.03, "changeTon": 0.85, "gldClose": 462.62}, {"date": "2026-02-17", "holdingTon": 1075.61, "changeTon": -1.42, "gldClose": 448.2}, {"date": "2026-02-18", "holdingTon": 1075.61, "changeTon": 0.0, "gldClose": 458.28}, {"date": "2026-02-19", "holdingTon": 1078.75, "changeTon": 3.14, "gldClose": 459.56}, {"date": "2026-02-20", "holdingTon": 1078.75, "changeTon": 0.0, "gldClose": 468.62}, {"date": "2026-02-23", "holdingTon": 1086.47, "changeTon": 7.72, "gldClose": 481.28}, {"date": "2026-02-24", "holdingTon": 1094.19, "changeTon": 7.72, "gldClose": 474.61}, {"date": "2026-02-25", "holdingTon": 1097.62, "changeTon": 3.43, "gldClose": 473.42}, {"date": "2026-02-26", "holdingTon": 1097.9, "changeTon": 0.28, "gldClose": 477.48}]};
+
+</script>
+  <script>
+window.__OFFSHORE_CNH_QUOTE__ = {
+  pair: 'USDCNH',
+  rate: 7.2365,
+  asOf: '2026-03-04 15:00:00',
+  source: 'db_snapshot'
+};
+
+</script>
+  <script>
+    const OUNCE_PER_TON = 32150.7466;
+    const GLD_SHARE_OUNCE = 0.0934;
+    const DATA_FILE = 'data/spdr_gld_5y_history.json';
+    const OFFSHORE_CNH_QUOTE_FILE = 'data/offshore_cnh_quote.json';
+    const OFFSHORE_CNH_API = '/api/market/offshore-cnh/latest';
+    const STORAGE_PERIOD_KEY = 'etf_period_preference_v1';
+
+    const PRICE_CHANGE_THRESHOLD = 0.003;
+    const HOLD_CHANGE_THRESHOLD_TON = 1.0;
+
+    const state = {
+      period: 'month',
+      unit: 'ton',
+      customStart: '',
+      customEnd: '',
+      chartSpan: '1m',
+      matrixYear: ''
+    };
+
+    let rawData = [];
+    let baseline = {
+      dateFrom: '',
+      dateTo: '',
+      records: 0
+    };
+    let offshoreCnhQuote = {
+      rate: 0,
+      asOf: '',
+      source: ''
+    };
+
+    const fmtDate = (d) => {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    };
+
+    function parseDate(s) {
+      return new Date(`${s}T00:00:00`);
+    }
+
+    function deriveBaseline(rows) {
+      return {
+        dateFrom: rows[0].date,
+        dateTo: rows[rows.length - 1].date,
+        records: rows.length
+      };
+    }
+
+    function getLatestDateObj() {
+      return rawData[rawData.length - 1].dateObj;
+    }
+
+    function getLatestDateStr() {
+      return rawData[rawData.length - 1].date;
+    }
+
+    function getChartData() {
+      const end = getLatestDateObj();
+      let start;
+      if (state.chartSpan === '1m') {
+        start = new Date(end);
+        start.setMonth(start.getMonth() - 1);
+      } else if (state.chartSpan === '1y') {
+        start = new Date(end);
+        start.setFullYear(start.getFullYear() - 1);
+      } else if (state.chartSpan === '3y') {
+        start = new Date(end);
+        start.setFullYear(start.getFullYear() - 3);
+      } else {
+        start = rawData[0].dateObj;
+      }
+      return rawData.filter((r) => r.dateObj >= start && r.dateObj <= end);
+    }
+
+    function getMatrixMode() {
+      return state.period === 'week' ? 'week' : 'month';
+    }
+
+    function getPeriodStart(date, period) {
+      const d = new Date(date);
+      if (period === 'year') return new Date(d.getFullYear(), 0, 1);
+      if (period === 'month') return new Date(d.getFullYear(), d.getMonth(), 1);
+      const weekday = d.getDay();
+      const diff = weekday === 0 ? 6 : weekday - 1;
+      const start = new Date(d);
+      start.setDate(d.getDate() - diff);
+      return new Date(start.getFullYear(), start.getMonth(), start.getDate());
+    }
+
+    function getPeriodData(period, endDateObj = getLatestDateObj()) {
+      const start = getPeriodStart(endDateObj, period);
+      return rawData.filter((r) => r.dateObj >= start && r.dateObj <= endDateObj);
+    }
+
+    function getRangeData() {
+      if (state.customStart && state.customEnd) {
+        const start = parseDate(state.customStart);
+        const end = parseDate(state.customEnd);
+        if (start <= end) {
+          return rawData.filter((r) => r.dateObj >= start && r.dateObj <= end);
+        }
+      }
+      return getPeriodData(state.period, getLatestDateObj());
+    }
+
+    function getMatrixData() {
+      if (state.customStart && state.customEnd) {
+        return getRangeData();
+      }
+      const end = getLatestDateObj();
+      const yearStart = new Date(end.getFullYear(), 0, 1);
+      return rawData.filter((r) => r.dateObj >= yearStart && r.dateObj <= end);
+    }
+
+    function getMatrixAvailableYears(rows) {
+      return Array.from(new Set(rows.map((r) => r.dateObj.getFullYear()))).sort((a, b) => a - b);
+    }
+
+    function renderMatrixYearSelector(years, selectedYear, hasCustomRange) {
+      const select = document.getElementById('matrixYearSelect');
+      if (!select) return;
+      const shouldShow = hasCustomRange && years.length > 1;
+      select.classList.toggle('is-hidden', !shouldShow);
+      if (!shouldShow) {
+        select.disabled = true;
+        return;
+      }
+      const optionHTML = years.map((y) => `<option value="${y}">${y}年</option>`).join('');
+      if (select.innerHTML !== optionHTML) {
+        select.innerHTML = optionHTML;
+      }
+      select.value = String(selectedYear);
+      select.disabled = false;
+    }
+
+    function getRangeBounds() {
+      const list = getRangeData();
+      if (!list.length) return null;
+      return { start: list[0].dateObj, end: list[list.length - 1].dateObj };
+    }
+
+    function getInitialPeriod(endDateObj) {
+      const saved = localStorage.getItem(STORAGE_PERIOD_KEY);
+      if (saved && ['week', 'month', 'year'].includes(saved) && getPeriodData(saved, endDateObj).length >= 2) {
+        return saved;
+      }
+      if (getPeriodData('month', endDateObj).length >= 3) return 'month';
+      if (getPeriodData('year', endDateObj).length >= 3) return 'year';
+      return 'month';
+    }
+
+    function getDivergenceType(priceChangePct, holdChangeTon, priceThreshold, holdThresholdTon) {
+      if (priceChangePct >= priceThreshold && holdChangeTon <= -holdThresholdTon) return 'signal_a';
+      if (priceChangePct <= -priceThreshold && holdChangeTon >= holdThresholdTon) return 'signal_b';
+      return '';
+    }
+
+    function getSignalLabel(type) {
+      if (type === 'signal_a') return '价格上行 + 持仓减少';
+      if (type === 'signal_b') return '价格下行 + 持仓增加';
+      return '未触发';
+    }
+
+    function signalClass(type) {
+      if (type === 'signal_a') return 'signal-a';
+      if (type === 'signal_b') return 'signal-b';
+      return 'signal-none';
+    }
+
+    function toYi(v) {
+      return v / 100000000;
+    }
+
+    function fmtSigned(v, suffix, digits = 2) {
+      const sign = v > 0 ? '+' : '';
+      return `${sign}${v.toFixed(digits)}${suffix}`;
+    }
+
+    function formatValue(baseValue) {
+      if (state.unit === 'ton') return fmtSigned(baseValue, '吨', 2);
+      return fmtSigned(toYi(baseValue), '亿', 2);
+    }
+
+    function getFlowValue(row) {
+      return state.unit === 'ton' ? row.changeTon : row.changeAmountCny;
+    }
+
+    function formatMatrixValue(v) {
+      if (state.unit === 'ton') return `${v >= 0 ? '+' : ''}${v.toFixed(1)}`;
+      const yi = toYi(v);
+      return `${yi >= 0 ? '+' : ''}${yi.toFixed(1)}`;
+    }
+
+    function addDays(dateObj, days) {
+      const d = new Date(dateObj);
+      d.setDate(d.getDate() + days);
+      return d;
+    }
+
+    function getWeekBaseStartForYear(year) {
+      const jan1 = new Date(year, 0, 1);
+      const day = jan1.getDay();
+      const diff = day === 0 ? -6 : 1 - day; // Monday on or before Jan 1
+      const base = new Date(jan1);
+      base.setDate(jan1.getDate() + diff);
+      base.setHours(0, 0, 0, 0);
+      return base;
+    }
+
+    function buildMonthlyMatrix(rangeRows, year) {
+      const items = [];
+      for (let m = 0; m < 12; m += 1) {
+        const start = new Date(year, m, 1);
+        const next = new Date(year, m + 1, 1);
+        const rows = rangeRows.filter((r) => r.dateObj >= start && r.dateObj < next);
+        const net = rows.reduce((sum, r) => sum + getFlowValue(r), 0);
+        items.push({
+          label: `${String(m + 1).padStart(2, '0')}月`,
+          net,
+          hasData: rows.length > 0,
+          start: fmtDate(start),
+          end: fmtDate(addDays(next, -1))
+        });
+      }
+      return items;
+    }
+
+    function buildWeeklyMatrix(rangeRows, year, referenceDateObj) {
+      const baseStart = getWeekBaseStartForYear(year);
+      const ref = referenceDateObj || new Date(year, 0, 1);
+      const dayOffset = Math.max(0, Math.floor((ref - baseStart) / (1000 * 60 * 60 * 24)));
+      const currentWeekIndex = Math.min(52, Math.floor(dayOffset / 7) + 1);
+      const items = [];
+      for (let w = 1; w <= 52; w += 1) {
+        const start = addDays(baseStart, (w - 1) * 7);
+        const next = addDays(start, 7);
+        const rows = rangeRows.filter((r) => r.dateObj >= start && r.dateObj < next);
+        const net = rows.reduce((sum, r) => sum + getFlowValue(r), 0);
+        items.push({
+          label: `W${String(w).padStart(2, '0')}`,
+          net,
+          hasData: rows.length > 0,
+          isCurrent: w === currentWeekIndex,
+          start: fmtDate(start),
+          end: fmtDate(addDays(next, -1))
+        });
+      }
+      return items;
+    }
+
+    function renderFlowMatrix() {
+      const grid = document.getElementById('flowMatrixGrid');
+      const legend = document.getElementById('flowMatrixLegend');
+      const mode = getMatrixMode();
+      const matrixRows = getMatrixData();
+      const hasCustomRange = Boolean(state.customStart && state.customEnd);
+      if (!matrixRows.length) {
+        grid.innerHTML = '';
+        document.getElementById('matrixModeTag').textContent = '无数据';
+        legend.textContent = '当前区间无可用数据。';
+        renderMatrixYearSelector([], '', hasCustomRange);
+        return;
+      }
+      const years = getMatrixAvailableYears(matrixRows);
+      let matrixYear;
+      if (!hasCustomRange) {
+        matrixYear = years[years.length - 1];
+        state.matrixYear = '';
+      } else {
+        matrixYear = Number(state.matrixYear);
+        if (!years.includes(matrixYear)) {
+          matrixYear = years[years.length - 1];
+          state.matrixYear = String(matrixYear);
+        }
+      }
+      renderMatrixYearSelector(years, matrixYear, hasCustomRange);
+
+      const rowsOfYear = matrixRows.filter((r) => r.dateObj.getFullYear() === matrixYear);
+      if (!rowsOfYear.length) {
+        grid.innerHTML = '';
+        document.getElementById('matrixModeTag').textContent = `${matrixYear}年`;
+        legend.textContent = '所选年份在当前区间内无可用数据。';
+        return;
+      }
+
+      const referenceDateObj = rowsOfYear[rowsOfYear.length - 1].dateObj;
+      const sourceItems = mode === 'month'
+        ? buildMonthlyMatrix(rowsOfYear, matrixYear)
+        : buildWeeklyMatrix(rowsOfYear, matrixYear, referenceDateObj);
+      const items = sourceItems;
+      const hasDataItems = items.filter((x) => x.hasData);
+      const maxAbs = Math.max(...hasDataItems.map((x) => Math.abs(x.net)), 0.0001);
+
+      grid.className = `matrix-grid ${mode}`;
+      grid.innerHTML = '';
+
+      items.forEach((item) => {
+        const cell = document.createElement('div');
+        cell.className = 'matrix-cell';
+        if (mode === 'week' && item.isCurrent) {
+          cell.classList.add('current-period');
+        }
+        const intensity = Math.min(1, Math.abs(item.net) / maxAbs);
+        if (!item.hasData) {
+          cell.classList.add('no-data');
+          cell.style.background = '#f8fafc';
+          cell.style.borderColor = '#dde4ef';
+          cell.style.color = '#94a3b8';
+          cell.title = `${item.start} ~ ${item.end} 暂无数据`;
+          cell.innerHTML = mode === 'week'
+            ? `<div class="k">${item.label}</div>`
+            : `<div class="k">${item.label}</div><div class="v">--</div>`;
+          grid.appendChild(cell);
+          return;
+        }
+        if (item.net > 0) {
+          const alpha = 0.12 + intensity * 0.58;
+          cell.style.background = `rgba(232,72,63,${alpha.toFixed(3)})`;
+          cell.style.borderColor = 'rgba(232,72,63,0.28)';
+          cell.style.color = alpha > 0.45 ? '#fff' : '#7f1d1d';
+        } else if (item.net < 0) {
+          const alpha = 0.12 + intensity * 0.58;
+          cell.style.background = `rgba(33,135,57,${alpha.toFixed(3)})`;
+          cell.style.borderColor = 'rgba(33,135,57,0.28)';
+          cell.style.color = alpha > 0.45 ? '#fff' : '#14532d';
+        } else {
+          cell.style.background = '#f8fafc';
+          cell.style.borderColor = '#dde4ef';
+          cell.style.color = '#64748b';
+        }
+        cell.title = `${item.start} ~ ${item.end} 净${state.unit === 'ton' ? '变动' : '金额'}：${formatMatrixValue(item.net)}`;
+        cell.innerHTML = `<div class="k">${item.label}</div><div class="v">${formatMatrixValue(item.net)}</div>`;
+        grid.appendChild(cell);
+      });
+
+      document.getElementById('matrixModeTag').textContent =
+        mode === 'month' ? `${matrixYear}年 · 月度12格` : `${matrixYear}年 · 周度52格`;
+
+      legend.textContent = `口径：${hasCustomRange ? '按筛选区间' : '默认矩阵（当年累计）'}，按${matrixYear}年${mode === 'month' ? '月度' : '周度'}聚合；红=净流入，绿=净流出，灰=无数据，色深=强度。单位：${state.unit === 'ton' ? '吨' : '亿元'}。`;
+    }
+
+    function sumBy(list, key) {
+      return list.reduce((sum, r) => sum + r[key], 0);
+    }
+
+    function computeStats(list) {
+      if (state.unit === 'ton') {
+        const net = sumBy(list, 'changeTon');
+        const up = list.filter((r) => r.changeTon > 0).reduce((s, r) => s + r.changeTon, 0);
+        const down = list.filter((r) => r.changeTon < 0).reduce((s, r) => s + Math.abs(r.changeTon), 0);
+        return { net, up, down };
+      }
+      const net = sumBy(list, 'changeAmountCny');
+      const up = list.filter((r) => r.changeAmountCny > 0).reduce((s, r) => s + r.changeAmountCny, 0);
+      const down = list.filter((r) => r.changeAmountCny < 0).reduce((s, r) => s + Math.abs(r.changeAmountCny), 0);
+      return { net, up, down };
+    }
+
+    function computeSignals() {
+      rawData.forEach((r, i) => {
+        const prev = rawData[i - 1];
+        if (!prev) {
+          r.priceChangePct = 0;
+          r.divType = '';
+        } else {
+          r.priceChangePct = (r.gldClose - prev.gldClose) / prev.gldClose;
+          r.divType = getDivergenceType(r.priceChangePct, r.changeTon, PRICE_CHANGE_THRESHOLD, HOLD_CHANGE_THRESHOLD_TON);
+        }
+      });
+    }
+
+    function renderStats() {
+      const list = getRangeData();
+      if (!list.length) return;
+      const stats = computeStats(list);
+      const netVal = state.unit === 'ton' ? stats.net : toYi(stats.net);
+      const upVal = state.unit === 'ton' ? stats.up : toYi(stats.up);
+      const downVal = state.unit === 'ton' ? stats.down : toYi(stats.down);
+
+      document.getElementById('labelNet').textContent = `净变化（${state.unit === 'ton' ? '吨' : '亿元'}）`;
+      document.getElementById('labelUp').textContent = `增加（${state.unit === 'ton' ? '吨' : '亿元'}）`;
+      document.getElementById('labelDown').textContent = `减持（${state.unit === 'ton' ? '吨' : '亿元'}）`;
+
+      const netEl = document.getElementById('statNet');
+      netEl.textContent = `${netVal > 0 ? '+' : ''}${netVal.toFixed(2)}`;
+      netEl.className = `value ${netVal >= 0 ? 'up' : 'down'}`;
+      document.getElementById('statUp').textContent = `+${upVal.toFixed(2)}`;
+      document.getElementById('statDown').textContent = `-${downVal.toFixed(2)}`;
+      document.getElementById('statDays').textContent = String(list.length);
+
+      const bounds = getRangeBounds();
+      if (bounds) {
+        document.getElementById('rangeTag').textContent = `${fmtDate(bounds.start)} ~ ${fmtDate(bounds.end)}`;
+      }
+    }
+
+    function renderDivergenceMonitor() {
+      const list = getRangeData();
+      if (!list.length) return;
+      const today = list[list.length - 1];
+      const inRangeSignals = list.filter((r) => r.divType);
+      const signalA = inRangeSignals.filter((r) => r.divType === 'signal_a').length;
+      const signalB = inRangeSignals.filter((r) => r.divType === 'signal_b').length;
+
+      const todayTypeEl = document.getElementById('divTodayType');
+      todayTypeEl.textContent = getSignalLabel(today.divType);
+      todayTypeEl.className = `value ${signalClass(today.divType)}`;
+      document.getElementById('divTodayMeta').textContent = today.divType
+        ? '方向相反且达到阈值'
+        : '方向一致或波动未达到阈值';
+
+      document.getElementById('divCount').textContent = `${inRangeSignals.length} 次`;
+      document.getElementById('divCountMeta').textContent = `价格上行+持仓减少 ${signalA} 次；价格下行+持仓增加 ${signalB} 次`;
+
+      document.getElementById('divRuleTag').textContent =
+        `阈值 价格±${(PRICE_CHANGE_THRESHOLD * 100).toFixed(2)}% / 持仓±${HOLD_CHANGE_THRESHOLD_TON.toFixed(1)}吨`;
+    }
+
+    function getRangeExtremes(list) {
+      const valueKey = state.unit === 'ton' ? 'changeTon' : 'changeAmountCny';
+      const positiveRows = list.filter((r) => r[valueKey] > 0);
+      const negativeRows = list.filter((r) => r[valueKey] < 0);
+      const extremeIn = positiveRows.slice().sort((a, b) => b[valueKey] - a[valueKey])[0];
+      const extremeOut = negativeRows.slice().sort((a, b) => a[valueKey] - b[valueKey])[0];
+      return { valueKey, extremeIn, extremeOut };
+    }
+
+    function renderExtremeMonitor() {
+      const list = getRangeData();
+      if (!list.length) return;
+      const { valueKey, extremeIn, extremeOut } = getRangeExtremes(list);
+
+      const fmtUnitValue = (raw) => {
+        if (state.unit === 'ton') return `${raw > 0 ? '+' : ''}${raw.toFixed(2)}吨`;
+        return `${raw > 0 ? '+' : ''}${toYi(raw).toFixed(2)}亿`;
+      };
+
+      const inEl = document.getElementById('extremeInValue');
+      inEl.textContent = extremeIn ? fmtUnitValue(extremeIn[valueKey]) : '--';
+      inEl.className = `value ${extremeIn ? 'up' : 'signal-none'}`;
+      document.getElementById('extremeInMeta').textContent = extremeIn
+        ? `${extremeIn.date}（持仓变化 ${extremeIn.changeTon > 0 ? '+' : ''}${extremeIn.changeTon.toFixed(2)}吨）`
+        : '--';
+
+      const outEl = document.getElementById('extremeOutValue');
+      outEl.textContent = extremeOut ? fmtUnitValue(extremeOut[valueKey]) : '--';
+      outEl.className = `value ${extremeOut ? 'down' : 'signal-none'}`;
+      document.getElementById('extremeOutMeta').textContent = extremeOut
+        ? `${extremeOut.date}（持仓变化 ${extremeOut.changeTon.toFixed(2)}吨）`
+        : '--';
+
+      document.getElementById('extRuleTag').textContent = `按当前区间${state.unit === 'ton' ? '（吨）' : '（亿元）'}`;
+    }
+
+    function renderDailyList() {
+      const rangeList = getRangeData();
+      const list = [...rangeList].reverse();
+      const container = document.getElementById('dailyList');
+      container.innerHTML = '';
+      if (!list.length) return;
+      const { extremeIn, extremeOut } = getRangeExtremes(rangeList);
+
+      const maxAbs = Math.max(
+        ...list.map((r) => Math.abs(state.unit === 'ton' ? r.changeTon : toYi(r.changeAmountCny))),
+        0.01
+      );
+
+      list.forEach((r) => {
+        const baseRaw = state.unit === 'ton' ? r.changeTon : r.changeAmountCny;
+        const chartRaw = state.unit === 'ton' ? baseRaw : toYi(baseRaw);
+        const widthPercent = (Math.abs(chartRaw) / maxAbs) * 100;
+
+        const li = document.createElement('li');
+        li.className = 'daily-item';
+
+        const dateWrap = document.createElement('div');
+        dateWrap.className = 'date-wrap';
+        const date = document.createElement('span');
+        date.className = 'date-text';
+        date.textContent = r.date;
+        dateWrap.appendChild(date);
+        const tagList = [];
+        if (r.divType) {
+          tagList.push({
+            className: `signal-tag ${r.divType === 'signal_a' ? 'tag-a' : 'tag-b'}`,
+            text: r.divType === 'signal_a' ? '背离·价涨仓减' : '背离·价跌仓增'
+          });
+        }
+        if (extremeIn && r === extremeIn) {
+          tagList.push({
+            className: 'signal-tag ext-in-tag',
+            text: '极值·最大流入'
+          });
+        }
+        if (extremeOut && r === extremeOut) {
+          tagList.push({
+            className: 'signal-tag ext-out-tag',
+            text: '极值·最大流出'
+          });
+        }
+        if (tagList.length) {
+          const tagRow = document.createElement('div');
+          tagRow.className = 'tag-row';
+          tagList.forEach((item) => {
+            const tag = document.createElement('span');
+            tag.className = item.className;
+            tag.textContent = item.text;
+            tagRow.appendChild(tag);
+          });
+          dateWrap.appendChild(tagRow);
+        }
+
+        const track = document.createElement('div');
+        track.className = 'bar-track';
+        const bar = document.createElement('div');
+        bar.className = 'bar';
+        bar.style.width = `${widthPercent}%`;
+        bar.style.background = baseRaw >= 0 ? 'var(--up)' : 'var(--down)';
+        bar.style.left = '0';
+        track.appendChild(bar);
+
+        const value = document.createElement('span');
+        value.textContent = formatValue(baseRaw);
+        value.className = baseRaw >= 0 ? 'up' : 'down';
+
+        const valueWrap = document.createElement('div');
+        valueWrap.className = 'value-wrap';
+        valueWrap.appendChild(value);
+
+        li.appendChild(dateWrap);
+        li.appendChild(track);
+        li.appendChild(valueWrap);
+        container.appendChild(li);
+      });
+    }
+
+    function renderLineChart() {
+      const visible = getChartData();
+      const canvas = document.getElementById('lineChart');
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+      const p = 24;
+      ctx.clearRect(0, 0, w, h);
+      if (visible.length < 2) return;
+
+      const vals = visible.map((d) => d.holdingTon);
+      const min = Math.min(...vals);
+      const max = Math.max(...vals);
+      const range = max - min || 1;
+
+      ctx.strokeStyle = '#eef2f8';
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 4; i += 1) {
+        const y = p + ((h - 2 * p) * i) / 4;
+        ctx.beginPath();
+        ctx.moveTo(p, y);
+        ctx.lineTo(w - p, y);
+        ctx.stroke();
+      }
+
+      ctx.beginPath();
+      vals.forEach((v, i) => {
+        const x = p + ((w - 2 * p) * i) / (vals.length - 1);
+        const y = h - p - ((v - min) / range) * (h - 2 * p);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.strokeStyle = '#d57860';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      const lastX = w - p;
+      const lastY = h - p - ((vals[vals.length - 1] - min) / range) * (h - 2 * p);
+      ctx.beginPath();
+      ctx.arc(lastX, lastY, 5, 0, Math.PI * 2);
+      ctx.fillStyle = '#d14f3b';
+      ctx.fill();
+
+      ctx.fillStyle = '#6f7787';
+      ctx.font = '20px sans-serif';
+      ctx.fillText(`低点 ${min.toFixed(2)} 吨`, p, h - 4);
+      ctx.fillText(`高点 ${max.toFixed(2)} 吨`, w - 230, h - 4);
+    }
+
+    function renderFilterInfo() {
+      const startInput = document.getElementById('filterStartInput');
+      const endInput = document.getElementById('filterEndInput');
+      const minDate = rawData[0].date;
+      const maxDate = getLatestDateStr();
+      startInput.min = minDate;
+      startInput.max = maxDate;
+      endInput.min = minDate;
+      endInput.max = maxDate;
+      if (state.customStart && startInput.value !== state.customStart) startInput.value = state.customStart;
+      if (state.customEnd && endInput.value !== state.customEnd) endInput.value = state.customEnd;
+
+      const hasCustom = Boolean(state.customStart && state.customEnd);
+      const modeText = hasCustom
+        ? `当前为自定义区间：${state.customStart} ~ ${state.customEnd}`
+        : `当前为默认周期：${state.period === 'week' ? '当周' : state.period === 'month' ? '当月' : '当年'}（截止 ${maxDate}）`;
+      const fxText = offshoreCnhQuote.rate > 0
+        ? `USDCNH(离岸) ${offshoreCnhQuote.rate.toFixed(4)}${offshoreCnhQuote.asOf ? ` @${offshoreCnhQuote.asOf}` : ''}`
+        : 'USDCNH(离岸) --';
+      document.getElementById('filterStateText').textContent =
+        `${modeText} · 数据源：SPDR近5年（${baseline.records}条） · ${fxText}`;
+    }
+
+    function rerenderAll() {
+      renderStats();
+      renderFlowMatrix();
+      renderDivergenceMonitor();
+      renderExtremeMonitor();
+      renderDailyList();
+      renderLineChart();
+      renderFilterInfo();
+    }
+
+    function bindSegment(containerId, key) {
+      const wrap = document.getElementById(containerId);
+      wrap.addEventListener('click', (e) => {
+        const btn = e.target.closest('button');
+        if (!btn) return;
+        const val = btn.dataset[key];
+        if (!val || state[key] === val) return;
+
+        state[key] = val;
+        if (key === 'period') {
+          localStorage.setItem(STORAGE_PERIOD_KEY, val);
+          state.customStart = '';
+          state.customEnd = '';
+          state.matrixYear = '';
+          document.getElementById('filterStartInput').value = '';
+          document.getElementById('filterEndInput').value = '';
+        }
+        wrap.querySelectorAll('button').forEach((n) => n.classList.remove('active'));
+        btn.classList.add('active');
+        rerenderAll();
+      });
+    }
+
+    function bindFilterControls() {
+      const startInput = document.getElementById('filterStartInput');
+      const endInput = document.getElementById('filterEndInput');
+      const applyBtn = document.getElementById('filterApplyBtn');
+      const clearBtn = document.getElementById('filterClearBtn');
+
+      applyBtn.addEventListener('click', () => {
+        if (!startInput.value || !endInput.value) return;
+        if (parseDate(startInput.value) > parseDate(endInput.value)) return;
+        state.customStart = startInput.value;
+        state.customEnd = endInput.value;
+        state.matrixYear = '';
+        rerenderAll();
+      });
+
+      clearBtn.addEventListener('click', () => {
+        state.customStart = '';
+        state.customEnd = '';
+        state.matrixYear = '';
+        startInput.value = '';
+        endInput.value = '';
+        rerenderAll();
+      });
+    }
+
+    function bindMatrixYearControl() {
+      const select = document.getElementById('matrixYearSelect');
+      if (!select) return;
+      select.addEventListener('change', () => {
+        state.matrixYear = select.value;
+        rerenderAll();
+      });
+    }
+
+    async function loadOffshoreCnhQuote() {
+      let payload = window.__OFFSHORE_CNH_QUOTE__;
+      if (!payload) {
+        try {
+          const apiResp = await fetch(OFFSHORE_CNH_API, { cache: 'no-store' });
+          if (apiResp.ok) payload = await apiResp.json();
+        } catch (e) {
+          // ignore and try local fallback
+        }
+      }
+      if (!payload) {
+        const localResp = await fetch(OFFSHORE_CNH_QUOTE_FILE, { cache: 'no-store' });
+        if (localResp.ok) payload = await localResp.json();
+      }
+      const rate = Number(payload?.rate ?? payload?.usdcnh ?? payload?.price);
+      if (!Number.isFinite(rate) || rate <= 0) {
+        throw new Error('离岸人民币报价加载失败');
+      }
+      offshoreCnhQuote = {
+        rate,
+        asOf: payload?.asOf || payload?.timestamp || '',
+        source: payload?.source || ''
+      };
+    }
+
+    async function loadHistoryData() {
+      let payload = window.__SPDR_HISTORY_DATA__;
+      if (!payload) {
+        const resp = await fetch(DATA_FILE, { cache: 'no-store' });
+        if (!resp.ok) throw new Error(`failed to load ${DATA_FILE}`);
+        payload = await resp.json();
+      }
+
+      rawData = (payload.rows || []).map((r) => {
+        const dateObj = parseDate(r.date);
+        const gldClose = Number(r.gldClose);
+        const holdingTon = Number(r.holdingTon);
+        const changeTon = Number(r.changeTon);
+        const goldUsdPerOz = gldClose / GLD_SHARE_OUNCE;
+        return {
+          date: r.date,
+          dateObj,
+          gldClose,
+          holdingTon,
+          changeTon,
+          goldUsdPerOz,
+          changeAmountCny: changeTon * goldUsdPerOz * OUNCE_PER_TON * offshoreCnhQuote.rate
+        };
+      }).sort((a, b) => a.dateObj - b.dateObj);
+
+      baseline = payload.baseline
+        ? {
+            dateFrom: payload.baseline.dateFrom,
+            dateTo: payload.baseline.dateTo,
+            records: payload.baseline.records
+          }
+        : deriveBaseline(rawData);
+    }
+
+    async function boot() {
+      await loadOffshoreCnhQuote();
+      await loadHistoryData();
+      computeSignals();
+      state.period = getInitialPeriod(getLatestDateObj());
+
+      bindSegment('periodSegment', 'period');
+      bindSegment('unitSegment', 'unit');
+      bindSegment('chartSpanSegment', 'chartSpan');
+      bindFilterControls();
+      bindMatrixYearControl();
+
+      document.querySelectorAll('#periodSegment button').forEach((btn) => {
+        btn.classList.toggle('active', btn.dataset.period === state.period);
+      });
+      document.querySelectorAll('#chartSpanSegment button').forEach((btn) => {
+        btn.classList.toggle('active', btn.dataset.chartSpan === state.chartSpan);
+      });
+
+      const latestRow = rawData[rawData.length - 1];
+      document.getElementById('currentHolding').textContent = latestRow.holdingTon.toFixed(2);
+      document.getElementById('updatedAt').textContent = `更新：${latestRow.date}`;
+
+      rerenderAll();
+    }
+
+    boot().catch((err) => {
+      console.error(err);
+      document.getElementById('filterStateText').textContent = `历史数据加载失败：${err.message}`;
+    });
+  </script>
+</body>
+</html>

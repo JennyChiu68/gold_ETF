@@ -1,0 +1,1505 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>黄金ETF持仓报告 - 模拟小程序</title>
+  <style>
+    :root {
+      --bg: #f5f6f8;
+      --card: #ffffff;
+      --text: #222;
+      --subtext: #6c7380;
+      --line: #e9edf3;
+      --up: #e8483f;
+      --down: #218739;
+      --accent: #d08b3e;
+      --chip: #f0f3f7;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 10% -20%, #fff7e8 0%, transparent 35%),
+        radial-gradient(circle at 90% 0%, #eef5ff 0%, transparent 30%),
+        var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      display: flex;
+      justify-content: center;
+      padding: 18px 10px 30px;
+    }
+
+    .phone {
+      width: 100%;
+      max-width: 460px;
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 14px;
+      box-shadow: 0 6px 20px rgba(19, 31, 61, 0.06);
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    .hero {
+      background: linear-gradient(138deg, #fffdf8 0%, #ffffff 45%, #fff6e8 100%);
+      border: 1px solid #f6e7cf;
+    }
+
+    .title {
+      font-size: 34px;
+      margin: 0;
+      letter-spacing: 0.6px;
+      font-weight: 800;
+    }
+
+    .source {
+      margin-top: 6px;
+      color: var(--subtext);
+      font-size: 14px;
+    }
+
+    .main-value {
+      margin-top: 14px;
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .main-value .num {
+      color: #ca6a52;
+      font-size: 52px;
+      line-height: 1;
+      font-weight: 700;
+    }
+
+    .main-value .unit {
+      font-size: 30px;
+      color: #5f4d35;
+      font-weight: 600;
+    }
+
+    .meta {
+      margin-top: 8px;
+      color: var(--subtext);
+      font-size: 13px;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .meta-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .seg-wrap {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .segment {
+      background: var(--chip);
+      border-radius: 11px;
+      padding: 4px;
+      display: inline-flex;
+      gap: 4px;
+    }
+
+    .segment button {
+      border: 0;
+      background: transparent;
+      color: #4d5563;
+      border-radius: 8px;
+      padding: 8px 13px;
+      font-size: 14px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .segment button.active {
+      background: #fff;
+      color: #1a2433;
+      box-shadow: 0 2px 8px rgba(12, 28, 66, 0.12);
+    }
+
+    .summary-grid {
+      margin-top: 12px;
+      display: grid;
+      gap: 8px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .summary-item {
+      background: #fafbfd;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px;
+    }
+
+    .summary-item .label {
+      color: var(--subtext);
+      font-size: 12px;
+    }
+
+    .summary-item .value {
+      margin-top: 5px;
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+
+    .up { color: var(--up); }
+    .down { color: var(--down); }
+
+    .trend-wrap {
+      margin-top: 12px;
+      border-top: 1px dashed var(--line);
+      padding-top: 12px;
+    }
+
+    .chart-toolbar {
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .chart-toolbar .label {
+      color: #6b7280;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    canvas {
+      width: 100%;
+      height: auto;
+      border-radius: 10px;
+      background: linear-gradient(180deg, #fff 0%, #fcfdff 100%);
+      border: 1px solid var(--line);
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .range-tag {
+      color: #566074;
+      font-size: 12px;
+      background: #f3f6fb;
+      border: 1px solid #e6ecf4;
+      border-radius: 999px;
+      padding: 5px 10px;
+    }
+
+    .daily-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .daily-item {
+      display: grid;
+      grid-template-columns: 146px 1fr 94px;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: #354155;
+      padding: 2px 0;
+    }
+
+    .bar-track {
+      background: #f1f4f8;
+      border-radius: 999px;
+      height: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .bar {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      border-radius: 999px;
+      min-width: 2px;
+    }
+
+    .footer-note {
+      margin-top: 10px;
+      color: #7a8391;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .monitor-grid {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .monitor-item {
+      background: #fafbfd;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px;
+      min-height: 80px;
+    }
+
+    .monitor-item .label {
+      color: var(--subtext);
+      font-size: 12px;
+    }
+
+    .monitor-item .value {
+      margin-top: 6px;
+      font-size: 16px;
+      line-height: 1.3;
+      font-weight: 700;
+      color: #1f2a3d;
+    }
+
+    .monitor-item .sub {
+      margin-top: 4px;
+      color: #6a7383;
+      font-size: 12px;
+    }
+
+    .signal-a { color: #b04b2a; }
+    .signal-b { color: #1e7d4f; }
+    .signal-none { color: #5f697a; }
+
+    .date-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 5px;
+      min-width: 0;
+    }
+
+    .date-text {
+      white-space: nowrap;
+      line-height: 1.15;
+      font-weight: 600;
+      color: #374151;
+    }
+
+    .tag-row {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-wrap: wrap;
+      max-width: 100%;
+    }
+
+    .signal-tag {
+      font-size: 10px;
+      line-height: 1.2;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      white-space: nowrap;
+      flex-shrink: 0;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .tag-a {
+      color: #9a3412;
+      background: #fff7f2;
+      border-color: #ffd8c2;
+    }
+
+    .tag-b {
+      color: #166534;
+      background: #effaf4;
+      border-color: #ccebd9;
+    }
+
+    .ext-in-tag {
+      color: #b45309;
+      background: #fffaf2;
+      border-color: #f2d8b1;
+    }
+
+    .ext-out-tag {
+      color: #0f766e;
+      background: #f0fbfa;
+      border-color: #bfe7e3;
+    }
+
+    .tag-confirmed {
+      box-shadow: inset 0 0 0 1px rgba(24, 31, 46, 0.08);
+      font-weight: 700;
+    }
+
+    .value-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .filter-controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: nowrap;
+      margin-top: 10px;
+      font-size: clamp(11px, 2.6vw, 13px);
+      background: #f7f9fc;
+      border: 1px solid #e5ecf7;
+      border-radius: 12px;
+      padding: 8px 10px;
+    }
+
+    .filter-controls label {
+      font-size: inherit;
+      color: #5f6879;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .date-input {
+      border: 1px solid #d7deea;
+      border-radius: 8px;
+      padding: 6px 8px;
+      font-size: inherit;
+      color: #2a3448;
+      background: #fff;
+      width: clamp(92px, 21vw, 118px);
+      flex: 0 0 clamp(92px, 21vw, 118px);
+    }
+
+    .ghost-btn {
+      border: 1px solid #d7deea;
+      background: #fff;
+      border-radius: 8px;
+      padding: 6px 8px;
+      font-size: inherit;
+      color: #3b4760;
+      cursor: pointer;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    #filterApplyBtn {
+      background: #2563eb;
+      border-color: #2563eb;
+      color: #fff;
+    }
+
+    .filter-sep {
+      color: #8a93a3;
+      font-size: 12px;
+    }
+
+    .filter-state {
+      margin-top: 8px;
+      color: #6f7888;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .filter-actions {
+      display: inline-flex;
+      gap: 6px;
+      flex-wrap: nowrap;
+      flex-shrink: 0;
+    }
+
+    .matrix-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+
+    .matrix-head h2 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .matrix-tools {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .matrix-year-select {
+      border: 1px solid #d7deea;
+      background: #fff;
+      color: #3b4760;
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      min-width: 84px;
+    }
+
+    .matrix-year-select:disabled {
+      color: #8b95a6;
+      background: #f5f7fb;
+    }
+
+    .matrix-year-select.is-hidden {
+      display: none;
+    }
+
+    .matrix-grid {
+      display: grid;
+      gap: 8px;
+    }
+
+    .matrix-grid.month {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .matrix-grid.week {
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+    }
+
+    .matrix-cell {
+      border: 1px solid #dde4ef;
+      border-radius: 12px;
+      padding: 8px 6px;
+      min-height: 56px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      font-size: 12px;
+      color: #334155;
+      line-height: 1.2;
+    }
+
+    .matrix-cell .k {
+      font-weight: 700;
+      color: #4b5563;
+    }
+
+    .matrix-cell .v {
+      margin-top: 3px;
+      font-weight: 700;
+    }
+
+    .matrix-grid.week .matrix-cell {
+      min-height: 58px;
+      padding: 6px 4px;
+    }
+
+    .matrix-cell.no-data {
+      background: #f8fafc !important;
+      border-color: #dfe6f2 !important;
+      color: #94a3b8 !important;
+    }
+
+    .matrix-cell.current-period {
+      border-color: #2563eb !important;
+      box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.35);
+      position: relative;
+      animation: current-period-pulse 1.7s ease-in-out infinite;
+    }
+
+    .matrix-cell.current-period::after {
+      content: none;
+    }
+
+    .matrix-grid.week .matrix-cell .k {
+      font-size: 11px;
+      line-height: 1.05;
+      letter-spacing: 0;
+      white-space: nowrap;
+    }
+
+    .matrix-grid.week .matrix-cell .v {
+      margin-top: 2px;
+      font-size: 10px;
+      line-height: 1.05;
+      white-space: nowrap;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: clip;
+    }
+
+    .matrix-grid.week .matrix-cell.no-data .v {
+      display: none;
+    }
+
+    @keyframes current-period-pulse {
+      0%, 100% {
+        box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.35), 0 0 0 0 rgba(37, 99, 235, 0.0);
+      }
+      50% {
+        box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.7), 0 0 0 3px rgba(37, 99, 235, 0.16);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .matrix-cell.current-period {
+        animation: none;
+      }
+    }
+
+    .matrix-legend {
+      margin-top: 8px;
+      color: #6b7280;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    @media (max-width: 360px) {
+      .main-value .num { font-size: 42px; }
+      .main-value .unit { font-size: 24px; }
+      .daily-item { grid-template-columns: 118px 1fr 86px; }
+      .filter-controls { font-size: 11px; gap: 4px; }
+      .date-input { width: 88px; flex-basis: 88px; padding: 5px 6px; }
+      .ghost-btn { padding: 5px 6px; }
+      .filter-actions { gap: 4px; }
+      .matrix-grid.week { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+      .matrix-grid.week .matrix-cell .k { font-size: 10px; }
+      .matrix-grid.week .matrix-cell .v { font-size: 9px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="phone">
+    <section class="card hero">
+      <h1 class="title">黄金ETF持仓报告</h1>
+      <div class="source">公布机构：美国 SPDR Gold Trust</div>
+      <div class="main-value">
+        <span class="num" id="currentHolding">1097.62</span>
+        <span class="unit">吨</span>
+      </div>
+      <div class="meta">
+        <span>黄金ETF总持仓变化</span>
+        <span class="meta-right">
+          <span id="updatedAt">更新：2026-02-25</span>
+        </span>
+      </div>
+      <div class="trend-wrap">
+        <div class="chart-toolbar">
+          <span class="label">折线跨度</span>
+          <div class="segment" id="chartSpanSegment">
+            <button class="active" data-chart-span="1m">月</button>
+            <button data-chart-span="1y">1年</button>
+            <button data-chart-span="3y">3年</button>
+            <button data-chart-span="5y">5年</button>
+          </div>
+        </div>
+        <canvas id="lineChart" width="900" height="300"></canvas>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="seg-wrap">
+        <div class="segment" id="periodSegment">
+          <button class="active" data-period="week">周</button>
+          <button data-period="month">月</button>
+          <button data-period="year">年</button>
+        </div>
+        <div class="segment" id="unitSegment">
+          <button class="active" data-unit="ton">按吨统计</button>
+          <button data-unit="amount">按金额统计</button>
+        </div>
+      </div>
+      <div class="filter-controls">
+        <label for="filterStartInput">日期筛选</label>
+        <input id="filterStartInput" class="date-input" type="date" />
+        <span class="filter-sep">~</span>
+        <input id="filterEndInput" class="date-input" type="date" />
+        <span class="filter-actions">
+          <button id="filterApplyBtn" class="ghost-btn" type="button">应用</button>
+          <button id="filterClearBtn" class="ghost-btn" type="button">清除</button>
+        </span>
+      </div>
+      <div class="filter-state" id="filterStateText">--</div>
+
+      <div class="summary-grid">
+        <div class="summary-item">
+          <div class="label" id="labelNet">净变化（吨）</div>
+          <div class="value" id="statNet">--</div>
+        </div>
+        <div class="summary-item">
+          <div class="label">有效交易日</div>
+          <div class="value" id="statDays">--</div>
+        </div>
+        <div class="summary-item">
+          <div class="label" id="labelUp">增加（吨）</div>
+          <div class="value up" id="statUp">--</div>
+        </div>
+        <div class="summary-item">
+          <div class="label" id="labelDown">减持（吨）</div>
+          <div class="value down" id="statDown">--</div>
+        </div>
+      </div>
+
+      <div class="matrix-head" style="margin-top:12px;">
+        <h2>净流入矩阵</h2>
+        <div class="matrix-tools">
+          <span class="range-tag" id="matrixModeTag">跟随周期 --</span>
+          <select id="matrixYearSelect" class="matrix-year-select"></select>
+        </div>
+      </div>
+      <div id="flowMatrixGrid" class="matrix-grid month"></div>
+      <div class="matrix-legend" id="flowMatrixLegend">--</div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <h2>区间日变化一览</h2>
+        <span class="range-tag" id="rangeTag">--</span>
+      </div>
+      <ul class="daily-list" id="dailyList"></ul>
+      <div class="footer-note">
+        计算口径：按交易日净变化累计。金额为估算值（由 GLD 收盘价折算黄金价格并使用离岸人民币 USDCNH 报价换算），仅用于同口径对比；信号标签只表示客观数据状态。
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <h2>背离监控</h2>
+        <span class="range-tag" id="divRuleTag">阈值 --</span>
+      </div>
+      <div class="monitor-grid">
+        <div class="monitor-item">
+          <div class="label">最新交易日信号</div>
+          <div class="value signal-none" id="divTodayType">--</div>
+          <div class="sub" id="divTodayMeta">--</div>
+        </div>
+        <div class="monitor-item">
+          <div class="label">当前区间触发次数</div>
+          <div class="value" id="divCount">--</div>
+          <div class="sub" id="divCountMeta">--</div>
+        </div>
+      </div>
+      <div class="footer-note">
+        监控规则仅基于客观数据：当日价格涨跌方向与持仓增减方向相反且超过阈值时记为“背离信号”；不构成任何投资建议。
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <h2>极值监控</h2>
+        <span class="range-tag" id="extRuleTag">按当前区间</span>
+      </div>
+      <div class="monitor-grid">
+        <div class="monitor-item">
+          <div class="label">区间最大流入</div>
+          <div class="value" id="extremeInValue">--</div>
+          <div class="sub" id="extremeInMeta">--</div>
+        </div>
+        <div class="monitor-item">
+          <div class="label">区间最大流出</div>
+          <div class="value" id="extremeOutValue">--</div>
+          <div class="sub" id="extremeOutMeta">--</div>
+        </div>
+      </div>
+      <div class="footer-note">
+        极值监控仅基于当前区间客观数据：最大流入为区间内最大正向变化，最大流出为区间内最大负向变化；不构成任何投资建议。
+      </div>
+    </section>
+  </main>
+
+  <script src="data/spdr_gld_5y_history.bundle.js"></script>
+  <script src="data/offshore_cnh_quote.bundle.js"></script>
+  <script>
+    const OUNCE_PER_TON = 32150.7466;
+    const GLD_SHARE_OUNCE = 0.0934;
+    const DATA_FILE = 'data/spdr_gld_5y_history.json';
+    const OFFSHORE_CNH_QUOTE_FILE = 'data/offshore_cnh_quote.json';
+    const OFFSHORE_CNH_API = '/api/market/offshore-cnh/latest';
+    const STORAGE_PERIOD_KEY = 'etf_period_preference_v1';
+
+    const PRICE_CHANGE_THRESHOLD = 0.003;
+    const HOLD_CHANGE_THRESHOLD_TON = 1.0;
+
+    const state = {
+      period: 'month',
+      unit: 'ton',
+      customStart: '',
+      customEnd: '',
+      chartSpan: '1m',
+      matrixYear: ''
+    };
+
+    let rawData = [];
+    let baseline = {
+      dateFrom: '',
+      dateTo: '',
+      records: 0
+    };
+    let offshoreCnhQuote = {
+      rate: 0,
+      asOf: '',
+      source: ''
+    };
+
+    const fmtDate = (d) => {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    };
+
+    function parseDate(s) {
+      return new Date(`${s}T00:00:00`);
+    }
+
+    function deriveBaseline(rows) {
+      return {
+        dateFrom: rows[0].date,
+        dateTo: rows[rows.length - 1].date,
+        records: rows.length
+      };
+    }
+
+    function getLatestDateObj() {
+      return rawData[rawData.length - 1].dateObj;
+    }
+
+    function getLatestDateStr() {
+      return rawData[rawData.length - 1].date;
+    }
+
+    function getChartData() {
+      const end = getLatestDateObj();
+      let start;
+      if (state.chartSpan === '1m') {
+        start = new Date(end);
+        start.setMonth(start.getMonth() - 1);
+      } else if (state.chartSpan === '1y') {
+        start = new Date(end);
+        start.setFullYear(start.getFullYear() - 1);
+      } else if (state.chartSpan === '3y') {
+        start = new Date(end);
+        start.setFullYear(start.getFullYear() - 3);
+      } else {
+        start = rawData[0].dateObj;
+      }
+      return rawData.filter((r) => r.dateObj >= start && r.dateObj <= end);
+    }
+
+    function getMatrixMode() {
+      return state.period === 'week' ? 'week' : 'month';
+    }
+
+    function getPeriodStart(date, period) {
+      const d = new Date(date);
+      if (period === 'year') return new Date(d.getFullYear(), 0, 1);
+      if (period === 'month') return new Date(d.getFullYear(), d.getMonth(), 1);
+      const weekday = d.getDay();
+      const diff = weekday === 0 ? 6 : weekday - 1;
+      const start = new Date(d);
+      start.setDate(d.getDate() - diff);
+      return new Date(start.getFullYear(), start.getMonth(), start.getDate());
+    }
+
+    function getPeriodData(period, endDateObj = getLatestDateObj()) {
+      const start = getPeriodStart(endDateObj, period);
+      return rawData.filter((r) => r.dateObj >= start && r.dateObj <= endDateObj);
+    }
+
+    function getRangeData() {
+      if (state.customStart && state.customEnd) {
+        const start = parseDate(state.customStart);
+        const end = parseDate(state.customEnd);
+        if (start <= end) {
+          return rawData.filter((r) => r.dateObj >= start && r.dateObj <= end);
+        }
+      }
+      return getPeriodData(state.period, getLatestDateObj());
+    }
+
+    function getMatrixData() {
+      if (state.customStart && state.customEnd) {
+        return getRangeData();
+      }
+      const end = getLatestDateObj();
+      const yearStart = new Date(end.getFullYear(), 0, 1);
+      return rawData.filter((r) => r.dateObj >= yearStart && r.dateObj <= end);
+    }
+
+    function getMatrixAvailableYears(rows) {
+      return Array.from(new Set(rows.map((r) => r.dateObj.getFullYear()))).sort((a, b) => a - b);
+    }
+
+    function renderMatrixYearSelector(years, selectedYear, hasCustomRange) {
+      const select = document.getElementById('matrixYearSelect');
+      if (!select) return;
+      const shouldShow = hasCustomRange && years.length > 1;
+      select.classList.toggle('is-hidden', !shouldShow);
+      if (!shouldShow) {
+        select.disabled = true;
+        return;
+      }
+      const optionHTML = years.map((y) => `<option value="${y}">${y}年</option>`).join('');
+      if (select.innerHTML !== optionHTML) {
+        select.innerHTML = optionHTML;
+      }
+      select.value = String(selectedYear);
+      select.disabled = false;
+    }
+
+    function getRangeBounds() {
+      const list = getRangeData();
+      if (!list.length) return null;
+      return { start: list[0].dateObj, end: list[list.length - 1].dateObj };
+    }
+
+    function getInitialPeriod(endDateObj) {
+      const saved = localStorage.getItem(STORAGE_PERIOD_KEY);
+      if (saved && ['week', 'month', 'year'].includes(saved) && getPeriodData(saved, endDateObj).length >= 2) {
+        return saved;
+      }
+      if (getPeriodData('month', endDateObj).length >= 3) return 'month';
+      if (getPeriodData('year', endDateObj).length >= 3) return 'year';
+      return 'month';
+    }
+
+    function getDivergenceType(priceChangePct, holdChangeTon, priceThreshold, holdThresholdTon) {
+      if (priceChangePct >= priceThreshold && holdChangeTon <= -holdThresholdTon) return 'signal_a';
+      if (priceChangePct <= -priceThreshold && holdChangeTon >= holdThresholdTon) return 'signal_b';
+      return '';
+    }
+
+    function getSignalLabel(type) {
+      if (type === 'signal_a') return '价格上行 + 持仓减少';
+      if (type === 'signal_b') return '价格下行 + 持仓增加';
+      return '未触发';
+    }
+
+    function signalClass(type) {
+      if (type === 'signal_a') return 'signal-a';
+      if (type === 'signal_b') return 'signal-b';
+      return 'signal-none';
+    }
+
+    function toYi(v) {
+      return v / 100000000;
+    }
+
+    function fmtSigned(v, suffix, digits = 2) {
+      const sign = v > 0 ? '+' : '';
+      return `${sign}${v.toFixed(digits)}${suffix}`;
+    }
+
+    function formatValue(baseValue) {
+      if (state.unit === 'ton') return fmtSigned(baseValue, '吨', 2);
+      return fmtSigned(toYi(baseValue), '亿', 2);
+    }
+
+    function getFlowValue(row) {
+      return state.unit === 'ton' ? row.changeTon : row.changeAmountCny;
+    }
+
+    function formatMatrixValue(v) {
+      if (state.unit === 'ton') return `${v >= 0 ? '+' : ''}${v.toFixed(1)}`;
+      const yi = toYi(v);
+      return `${yi >= 0 ? '+' : ''}${yi.toFixed(1)}`;
+    }
+
+    function addDays(dateObj, days) {
+      const d = new Date(dateObj);
+      d.setDate(d.getDate() + days);
+      return d;
+    }
+
+    function getWeekBaseStartForYear(year) {
+      const jan1 = new Date(year, 0, 1);
+      const day = jan1.getDay();
+      const diff = day === 0 ? -6 : 1 - day; // Monday on or before Jan 1
+      const base = new Date(jan1);
+      base.setDate(jan1.getDate() + diff);
+      base.setHours(0, 0, 0, 0);
+      return base;
+    }
+
+    function buildMonthlyMatrix(rangeRows, year) {
+      const items = [];
+      for (let m = 0; m < 12; m += 1) {
+        const start = new Date(year, m, 1);
+        const next = new Date(year, m + 1, 1);
+        const rows = rangeRows.filter((r) => r.dateObj >= start && r.dateObj < next);
+        const net = rows.reduce((sum, r) => sum + getFlowValue(r), 0);
+        items.push({
+          label: `${String(m + 1).padStart(2, '0')}月`,
+          net,
+          hasData: rows.length > 0,
+          start: fmtDate(start),
+          end: fmtDate(addDays(next, -1))
+        });
+      }
+      return items;
+    }
+
+    function buildWeeklyMatrix(rangeRows, year, referenceDateObj) {
+      const baseStart = getWeekBaseStartForYear(year);
+      const ref = referenceDateObj || new Date(year, 0, 1);
+      const dayOffset = Math.max(0, Math.floor((ref - baseStart) / (1000 * 60 * 60 * 24)));
+      const currentWeekIndex = Math.min(52, Math.floor(dayOffset / 7) + 1);
+      const items = [];
+      for (let w = 1; w <= 52; w += 1) {
+        const start = addDays(baseStart, (w - 1) * 7);
+        const next = addDays(start, 7);
+        const rows = rangeRows.filter((r) => r.dateObj >= start && r.dateObj < next);
+        const net = rows.reduce((sum, r) => sum + getFlowValue(r), 0);
+        items.push({
+          label: `W${String(w).padStart(2, '0')}`,
+          net,
+          hasData: rows.length > 0,
+          isCurrent: w === currentWeekIndex,
+          start: fmtDate(start),
+          end: fmtDate(addDays(next, -1))
+        });
+      }
+      return items;
+    }
+
+    function renderFlowMatrix() {
+      const grid = document.getElementById('flowMatrixGrid');
+      const legend = document.getElementById('flowMatrixLegend');
+      const mode = getMatrixMode();
+      const matrixRows = getMatrixData();
+      const hasCustomRange = Boolean(state.customStart && state.customEnd);
+      if (!matrixRows.length) {
+        grid.innerHTML = '';
+        document.getElementById('matrixModeTag').textContent = '无数据';
+        legend.textContent = '当前区间无可用数据。';
+        renderMatrixYearSelector([], '', hasCustomRange);
+        return;
+      }
+      const years = getMatrixAvailableYears(matrixRows);
+      let matrixYear;
+      if (!hasCustomRange) {
+        matrixYear = years[years.length - 1];
+        state.matrixYear = '';
+      } else {
+        matrixYear = Number(state.matrixYear);
+        if (!years.includes(matrixYear)) {
+          matrixYear = years[years.length - 1];
+          state.matrixYear = String(matrixYear);
+        }
+      }
+      renderMatrixYearSelector(years, matrixYear, hasCustomRange);
+
+      const rowsOfYear = matrixRows.filter((r) => r.dateObj.getFullYear() === matrixYear);
+      if (!rowsOfYear.length) {
+        grid.innerHTML = '';
+        document.getElementById('matrixModeTag').textContent = `${matrixYear}年`;
+        legend.textContent = '所选年份在当前区间内无可用数据。';
+        return;
+      }
+
+      const referenceDateObj = rowsOfYear[rowsOfYear.length - 1].dateObj;
+      const sourceItems = mode === 'month'
+        ? buildMonthlyMatrix(rowsOfYear, matrixYear)
+        : buildWeeklyMatrix(rowsOfYear, matrixYear, referenceDateObj);
+      const items = sourceItems;
+      const hasDataItems = items.filter((x) => x.hasData);
+      const maxAbs = Math.max(...hasDataItems.map((x) => Math.abs(x.net)), 0.0001);
+
+      grid.className = `matrix-grid ${mode}`;
+      grid.innerHTML = '';
+
+      items.forEach((item) => {
+        const cell = document.createElement('div');
+        cell.className = 'matrix-cell';
+        if (mode === 'week' && item.isCurrent) {
+          cell.classList.add('current-period');
+        }
+        const intensity = Math.min(1, Math.abs(item.net) / maxAbs);
+        if (!item.hasData) {
+          cell.classList.add('no-data');
+          cell.style.background = '#f8fafc';
+          cell.style.borderColor = '#dde4ef';
+          cell.style.color = '#94a3b8';
+          cell.title = `${item.start} ~ ${item.end} 暂无数据`;
+          cell.innerHTML = mode === 'week'
+            ? `<div class="k">${item.label}</div>`
+            : `<div class="k">${item.label}</div><div class="v">--</div>`;
+          grid.appendChild(cell);
+          return;
+        }
+        if (item.net > 0) {
+          const alpha = 0.12 + intensity * 0.58;
+          cell.style.background = `rgba(232,72,63,${alpha.toFixed(3)})`;
+          cell.style.borderColor = 'rgba(232,72,63,0.28)';
+          cell.style.color = alpha > 0.45 ? '#fff' : '#7f1d1d';
+        } else if (item.net < 0) {
+          const alpha = 0.12 + intensity * 0.58;
+          cell.style.background = `rgba(33,135,57,${alpha.toFixed(3)})`;
+          cell.style.borderColor = 'rgba(33,135,57,0.28)';
+          cell.style.color = alpha > 0.45 ? '#fff' : '#14532d';
+        } else {
+          cell.style.background = '#f8fafc';
+          cell.style.borderColor = '#dde4ef';
+          cell.style.color = '#64748b';
+        }
+        cell.title = `${item.start} ~ ${item.end} 净${state.unit === 'ton' ? '变动' : '金额'}：${formatMatrixValue(item.net)}`;
+        cell.innerHTML = `<div class="k">${item.label}</div><div class="v">${formatMatrixValue(item.net)}</div>`;
+        grid.appendChild(cell);
+      });
+
+      document.getElementById('matrixModeTag').textContent =
+        mode === 'month' ? `${matrixYear}年 · 月度12格` : `${matrixYear}年 · 周度52格`;
+
+      legend.textContent = `口径：${hasCustomRange ? '按筛选区间' : '默认矩阵（当年累计）'}，按${matrixYear}年${mode === 'month' ? '月度' : '周度'}聚合；红=净流入，绿=净流出，灰=无数据，色深=强度。单位：${state.unit === 'ton' ? '吨' : '亿元'}。`;
+    }
+
+    function sumBy(list, key) {
+      return list.reduce((sum, r) => sum + r[key], 0);
+    }
+
+    function computeStats(list) {
+      if (state.unit === 'ton') {
+        const net = sumBy(list, 'changeTon');
+        const up = list.filter((r) => r.changeTon > 0).reduce((s, r) => s + r.changeTon, 0);
+        const down = list.filter((r) => r.changeTon < 0).reduce((s, r) => s + Math.abs(r.changeTon), 0);
+        return { net, up, down };
+      }
+      const net = sumBy(list, 'changeAmountCny');
+      const up = list.filter((r) => r.changeAmountCny > 0).reduce((s, r) => s + r.changeAmountCny, 0);
+      const down = list.filter((r) => r.changeAmountCny < 0).reduce((s, r) => s + Math.abs(r.changeAmountCny), 0);
+      return { net, up, down };
+    }
+
+    function computeSignals() {
+      rawData.forEach((r, i) => {
+        const prev = rawData[i - 1];
+        if (!prev) {
+          r.priceChangePct = 0;
+          r.divType = '';
+        } else {
+          r.priceChangePct = (r.gldClose - prev.gldClose) / prev.gldClose;
+          r.divType = getDivergenceType(r.priceChangePct, r.changeTon, PRICE_CHANGE_THRESHOLD, HOLD_CHANGE_THRESHOLD_TON);
+        }
+      });
+    }
+
+    function renderStats() {
+      const list = getRangeData();
+      if (!list.length) return;
+      const stats = computeStats(list);
+      const netVal = state.unit === 'ton' ? stats.net : toYi(stats.net);
+      const upVal = state.unit === 'ton' ? stats.up : toYi(stats.up);
+      const downVal = state.unit === 'ton' ? stats.down : toYi(stats.down);
+
+      document.getElementById('labelNet').textContent = `净变化（${state.unit === 'ton' ? '吨' : '亿元'}）`;
+      document.getElementById('labelUp').textContent = `增加（${state.unit === 'ton' ? '吨' : '亿元'}）`;
+      document.getElementById('labelDown').textContent = `减持（${state.unit === 'ton' ? '吨' : '亿元'}）`;
+
+      const netEl = document.getElementById('statNet');
+      netEl.textContent = `${netVal > 0 ? '+' : ''}${netVal.toFixed(2)}`;
+      netEl.className = `value ${netVal >= 0 ? 'up' : 'down'}`;
+      document.getElementById('statUp').textContent = `+${upVal.toFixed(2)}`;
+      document.getElementById('statDown').textContent = `-${downVal.toFixed(2)}`;
+      document.getElementById('statDays').textContent = String(list.length);
+
+      const bounds = getRangeBounds();
+      if (bounds) {
+        document.getElementById('rangeTag').textContent = `${fmtDate(bounds.start)} ~ ${fmtDate(bounds.end)}`;
+      }
+    }
+
+    function renderDivergenceMonitor() {
+      const list = getRangeData();
+      if (!list.length) return;
+      const today = list[list.length - 1];
+      const inRangeSignals = list.filter((r) => r.divType);
+      const signalA = inRangeSignals.filter((r) => r.divType === 'signal_a').length;
+      const signalB = inRangeSignals.filter((r) => r.divType === 'signal_b').length;
+
+      const todayTypeEl = document.getElementById('divTodayType');
+      todayTypeEl.textContent = getSignalLabel(today.divType);
+      todayTypeEl.className = `value ${signalClass(today.divType)}`;
+      document.getElementById('divTodayMeta').textContent = today.divType
+        ? '方向相反且达到阈值'
+        : '方向一致或波动未达到阈值';
+
+      document.getElementById('divCount').textContent = `${inRangeSignals.length} 次`;
+      document.getElementById('divCountMeta').textContent = `价格上行+持仓减少 ${signalA} 次；价格下行+持仓增加 ${signalB} 次`;
+
+      document.getElementById('divRuleTag').textContent =
+        `阈值 价格±${(PRICE_CHANGE_THRESHOLD * 100).toFixed(2)}% / 持仓±${HOLD_CHANGE_THRESHOLD_TON.toFixed(1)}吨`;
+    }
+
+    function getRangeExtremes(list) {
+      const valueKey = state.unit === 'ton' ? 'changeTon' : 'changeAmountCny';
+      const positiveRows = list.filter((r) => r[valueKey] > 0);
+      const negativeRows = list.filter((r) => r[valueKey] < 0);
+      const extremeIn = positiveRows.slice().sort((a, b) => b[valueKey] - a[valueKey])[0];
+      const extremeOut = negativeRows.slice().sort((a, b) => a[valueKey] - b[valueKey])[0];
+      return { valueKey, extremeIn, extremeOut };
+    }
+
+    function renderExtremeMonitor() {
+      const list = getRangeData();
+      if (!list.length) return;
+      const { valueKey, extremeIn, extremeOut } = getRangeExtremes(list);
+
+      const fmtUnitValue = (raw) => {
+        if (state.unit === 'ton') return `${raw > 0 ? '+' : ''}${raw.toFixed(2)}吨`;
+        return `${raw > 0 ? '+' : ''}${toYi(raw).toFixed(2)}亿`;
+      };
+
+      const inEl = document.getElementById('extremeInValue');
+      inEl.textContent = extremeIn ? fmtUnitValue(extremeIn[valueKey]) : '--';
+      inEl.className = `value ${extremeIn ? 'up' : 'signal-none'}`;
+      document.getElementById('extremeInMeta').textContent = extremeIn
+        ? `${extremeIn.date}（持仓变化 ${extremeIn.changeTon > 0 ? '+' : ''}${extremeIn.changeTon.toFixed(2)}吨）`
+        : '--';
+
+      const outEl = document.getElementById('extremeOutValue');
+      outEl.textContent = extremeOut ? fmtUnitValue(extremeOut[valueKey]) : '--';
+      outEl.className = `value ${extremeOut ? 'down' : 'signal-none'}`;
+      document.getElementById('extremeOutMeta').textContent = extremeOut
+        ? `${extremeOut.date}（持仓变化 ${extremeOut.changeTon.toFixed(2)}吨）`
+        : '--';
+
+      document.getElementById('extRuleTag').textContent = `按当前区间${state.unit === 'ton' ? '（吨）' : '（亿元）'}`;
+    }
+
+    function renderDailyList() {
+      const rangeList = getRangeData();
+      const list = [...rangeList].reverse();
+      const container = document.getElementById('dailyList');
+      container.innerHTML = '';
+      if (!list.length) return;
+      const { extremeIn, extremeOut } = getRangeExtremes(rangeList);
+
+      const maxAbs = Math.max(
+        ...list.map((r) => Math.abs(state.unit === 'ton' ? r.changeTon : toYi(r.changeAmountCny))),
+        0.01
+      );
+
+      list.forEach((r) => {
+        const baseRaw = state.unit === 'ton' ? r.changeTon : r.changeAmountCny;
+        const chartRaw = state.unit === 'ton' ? baseRaw : toYi(baseRaw);
+        const widthPercent = (Math.abs(chartRaw) / maxAbs) * 100;
+
+        const li = document.createElement('li');
+        li.className = 'daily-item';
+
+        const dateWrap = document.createElement('div');
+        dateWrap.className = 'date-wrap';
+        const date = document.createElement('span');
+        date.className = 'date-text';
+        date.textContent = r.date;
+        dateWrap.appendChild(date);
+        const tagList = [];
+        if (r.divType) {
+          tagList.push({
+            className: `signal-tag ${r.divType === 'signal_a' ? 'tag-a' : 'tag-b'}`,
+            text: r.divType === 'signal_a' ? '背离·价涨仓减' : '背离·价跌仓增'
+          });
+        }
+        if (extremeIn && r === extremeIn) {
+          tagList.push({
+            className: 'signal-tag ext-in-tag',
+            text: '极值·最大流入'
+          });
+        }
+        if (extremeOut && r === extremeOut) {
+          tagList.push({
+            className: 'signal-tag ext-out-tag',
+            text: '极值·最大流出'
+          });
+        }
+        if (tagList.length) {
+          const tagRow = document.createElement('div');
+          tagRow.className = 'tag-row';
+          tagList.forEach((item) => {
+            const tag = document.createElement('span');
+            tag.className = item.className;
+            tag.textContent = item.text;
+            tagRow.appendChild(tag);
+          });
+          dateWrap.appendChild(tagRow);
+        }
+
+        const track = document.createElement('div');
+        track.className = 'bar-track';
+        const bar = document.createElement('div');
+        bar.className = 'bar';
+        bar.style.width = `${widthPercent}%`;
+        bar.style.background = baseRaw >= 0 ? 'var(--up)' : 'var(--down)';
+        bar.style.left = '0';
+        track.appendChild(bar);
+
+        const value = document.createElement('span');
+        value.textContent = formatValue(baseRaw);
+        value.className = baseRaw >= 0 ? 'up' : 'down';
+
+        const valueWrap = document.createElement('div');
+        valueWrap.className = 'value-wrap';
+        valueWrap.appendChild(value);
+
+        li.appendChild(dateWrap);
+        li.appendChild(track);
+        li.appendChild(valueWrap);
+        container.appendChild(li);
+      });
+    }
+
+    function renderLineChart() {
+      const visible = getChartData();
+      const canvas = document.getElementById('lineChart');
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+      const p = 24;
+      ctx.clearRect(0, 0, w, h);
+      if (visible.length < 2) return;
+
+      const vals = visible.map((d) => d.holdingTon);
+      const min = Math.min(...vals);
+      const max = Math.max(...vals);
+      const range = max - min || 1;
+
+      ctx.strokeStyle = '#eef2f8';
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 4; i += 1) {
+        const y = p + ((h - 2 * p) * i) / 4;
+        ctx.beginPath();
+        ctx.moveTo(p, y);
+        ctx.lineTo(w - p, y);
+        ctx.stroke();
+      }
+
+      ctx.beginPath();
+      vals.forEach((v, i) => {
+        const x = p + ((w - 2 * p) * i) / (vals.length - 1);
+        const y = h - p - ((v - min) / range) * (h - 2 * p);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.strokeStyle = '#d57860';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      const lastX = w - p;
+      const lastY = h - p - ((vals[vals.length - 1] - min) / range) * (h - 2 * p);
+      ctx.beginPath();
+      ctx.arc(lastX, lastY, 5, 0, Math.PI * 2);
+      ctx.fillStyle = '#d14f3b';
+      ctx.fill();
+
+      ctx.fillStyle = '#6f7787';
+      ctx.font = '20px sans-serif';
+      ctx.fillText(`低点 ${min.toFixed(2)} 吨`, p, h - 4);
+      ctx.fillText(`高点 ${max.toFixed(2)} 吨`, w - 230, h - 4);
+    }
+
+    function renderFilterInfo() {
+      const startInput = document.getElementById('filterStartInput');
+      const endInput = document.getElementById('filterEndInput');
+      const minDate = rawData[0].date;
+      const maxDate = getLatestDateStr();
+      startInput.min = minDate;
+      startInput.max = maxDate;
+      endInput.min = minDate;
+      endInput.max = maxDate;
+      if (state.customStart && startInput.value !== state.customStart) startInput.value = state.customStart;
+      if (state.customEnd && endInput.value !== state.customEnd) endInput.value = state.customEnd;
+
+      const hasCustom = Boolean(state.customStart && state.customEnd);
+      const modeText = hasCustom
+        ? `当前为自定义区间：${state.customStart} ~ ${state.customEnd}`
+        : `当前为默认周期：${state.period === 'week' ? '当周' : state.period === 'month' ? '当月' : '当年'}（截止 ${maxDate}）`;
+      const fxText = offshoreCnhQuote.rate > 0
+        ? `USDCNH(离岸) ${offshoreCnhQuote.rate.toFixed(4)}${offshoreCnhQuote.asOf ? ` @${offshoreCnhQuote.asOf}` : ''}`
+        : 'USDCNH(离岸) --';
+      document.getElementById('filterStateText').textContent =
+        `${modeText} · 数据源：SPDR近5年（${baseline.records}条） · ${fxText}`;
+    }
+
+    function rerenderAll() {
+      renderStats();
+      renderFlowMatrix();
+      renderDivergenceMonitor();
+      renderExtremeMonitor();
+      renderDailyList();
+      renderLineChart();
+      renderFilterInfo();
+    }
+
+    function bindSegment(containerId, key) {
+      const wrap = document.getElementById(containerId);
+      wrap.addEventListener('click', (e) => {
+        const btn = e.target.closest('button');
+        if (!btn) return;
+        const val = btn.dataset[key];
+        if (!val || state[key] === val) return;
+
+        state[key] = val;
+        if (key === 'period') {
+          localStorage.setItem(STORAGE_PERIOD_KEY, val);
+          state.customStart = '';
+          state.customEnd = '';
+          state.matrixYear = '';
+          document.getElementById('filterStartInput').value = '';
+          document.getElementById('filterEndInput').value = '';
+        }
+        wrap.querySelectorAll('button').forEach((n) => n.classList.remove('active'));
+        btn.classList.add('active');
+        rerenderAll();
+      });
+    }
+
+    function bindFilterControls() {
+      const startInput = document.getElementById('filterStartInput');
+      const endInput = document.getElementById('filterEndInput');
+      const applyBtn = document.getElementById('filterApplyBtn');
+      const clearBtn = document.getElementById('filterClearBtn');
+
+      applyBtn.addEventListener('click', () => {
+        if (!startInput.value || !endInput.value) return;
+        if (parseDate(startInput.value) > parseDate(endInput.value)) return;
+        state.customStart = startInput.value;
+        state.customEnd = endInput.value;
+        state.matrixYear = '';
+        rerenderAll();
+      });
+
+      clearBtn.addEventListener('click', () => {
+        state.customStart = '';
+        state.customEnd = '';
+        state.matrixYear = '';
+        startInput.value = '';
+        endInput.value = '';
+        rerenderAll();
+      });
+    }
+
+    function bindMatrixYearControl() {
+      const select = document.getElementById('matrixYearSelect');
+      if (!select) return;
+      select.addEventListener('change', () => {
+        state.matrixYear = select.value;
+        rerenderAll();
+      });
+    }
+
+    async function loadOffshoreCnhQuote() {
+      let payload = window.__OFFSHORE_CNH_QUOTE__;
+      if (!payload) {
+        try {
+          const apiResp = await fetch(OFFSHORE_CNH_API, { cache: 'no-store' });
+          if (apiResp.ok) payload = await apiResp.json();
+        } catch (e) {
+          // ignore and try local fallback
+        }
+      }
+      if (!payload) {
+        const localResp = await fetch(OFFSHORE_CNH_QUOTE_FILE, { cache: 'no-store' });
+        if (localResp.ok) payload = await localResp.json();
+      }
+      const rate = Number(payload?.rate ?? payload?.usdcnh ?? payload?.price);
+      if (!Number.isFinite(rate) || rate <= 0) {
+        throw new Error('离岸人民币报价加载失败');
+      }
+      offshoreCnhQuote = {
+        rate,
+        asOf: payload?.asOf || payload?.timestamp || '',
+        source: payload?.source || ''
+      };
+    }
+
+    async function loadHistoryData() {
+      let payload = window.__SPDR_HISTORY_DATA__;
+      if (!payload) {
+        const resp = await fetch(DATA_FILE, { cache: 'no-store' });
+        if (!resp.ok) throw new Error(`failed to load ${DATA_FILE}`);
+        payload = await resp.json();
+      }
+
+      rawData = (payload.rows || []).map((r) => {
+        const dateObj = parseDate(r.date);
+        const gldClose = Number(r.gldClose);
+        const holdingTon = Number(r.holdingTon);
+        const changeTon = Number(r.changeTon);
+        const goldUsdPerOz = gldClose / GLD_SHARE_OUNCE;
+        return {
+          date: r.date,
+          dateObj,
+          gldClose,
+          holdingTon,
+          changeTon,
+          goldUsdPerOz,
+          changeAmountCny: changeTon * goldUsdPerOz * OUNCE_PER_TON * offshoreCnhQuote.rate
+        };
+      }).sort((a, b) => a.dateObj - b.dateObj);
+
+      baseline = payload.baseline
+        ? {
+            dateFrom: payload.baseline.dateFrom,
+            dateTo: payload.baseline.dateTo,
+            records: payload.baseline.records
+          }
+        : deriveBaseline(rawData);
+    }
+
+    async function boot() {
+      await loadOffshoreCnhQuote();
+      await loadHistoryData();
+      computeSignals();
+      state.period = getInitialPeriod(getLatestDateObj());
+
+      bindSegment('periodSegment', 'period');
+      bindSegment('unitSegment', 'unit');
+      bindSegment('chartSpanSegment', 'chartSpan');
+      bindFilterControls();
+      bindMatrixYearControl();
+
+      document.querySelectorAll('#periodSegment button').forEach((btn) => {
+        btn.classList.toggle('active', btn.dataset.period === state.period);
+      });
+      document.querySelectorAll('#chartSpanSegment button').forEach((btn) => {
+        btn.classList.toggle('active', btn.dataset.chartSpan === state.chartSpan);
+      });
+
+      const latestRow = rawData[rawData.length - 1];
+      document.getElementById('currentHolding').textContent = latestRow.holdingTon.toFixed(2);
+      document.getElementById('updatedAt').textContent = `更新：${latestRow.date}`;
+
+      rerenderAll();
+    }
+
+    boot().catch((err) => {
+      console.error(err);
+      document.getElementById('filterStateText').textContent = `历史数据加载失败：${err.message}`;
+    });
+  </script>
+</body>
+</html>

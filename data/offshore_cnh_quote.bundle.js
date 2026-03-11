@@ -1,0 +1,6 @@
+window.__OFFSHORE_CNH_QUOTE__ = {
+  pair: 'USDCNH',
+  rate: 7.2365,
+  asOf: '2026-03-04 15:00:00',
+  source: 'db_snapshot'
+};
